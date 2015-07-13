@@ -1,0 +1,10 @@
+del avc.lot
+del avc.lof
+del avc.toc
+del avc.out
+del avc.bbl
+del avc.blg
+del *.aux
+del *.log
+del *.bak
+del *~
