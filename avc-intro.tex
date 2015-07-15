@@ -1,10 +1,14 @@
 \chapter{Introduction}
 
-Mother natures creation, examples.
-Why do we need to understand and synthesize these motions? Their applications.
-Where are we? What are the commonly used method?
+Most of us human can effortlessly accomplish various locomotion tasks. We can walk, run, jump and even ride on a bicycle. In addition, Mother Nature has created an amazingly diverse set of motions in the animal kingdom. For example, birds can fly in the sky, fishes can swim in the water, geccos can crawl on a verticle surface and cats can reoriented themselves to survive a fall. Understanding and synthesizing these motions will have far-reaching impacts on a wide variety of industries, including entertainment, robotics and health care. In the entertainment industry, such as movie and games, we need to study the locomotion in nature to faithfully reproduce them on the screen, or to synthesize plausible animations for imaginary creatures. Studying  locomotion in nature can help us develop robotic controllers with extensive agility and maneuverability, such as MIT Cheetah \cite{} and Big Dog from Boston Dynamics \cite{}. These robots are expected to accomplish various missions, which are dangerous for human operators, in military, transportation, exploration and rescuing. Understanding human locomotion, can guide us build comfortable and yet powerful exoskeletons that can promote gait habilitation in children, assist paralyzed person to walk or aid normal persons to achieve superhuman ability.
+
+Although we often take our locomotion ability for granted because we can perform them so effortlessly, it is a notoriously difficult problem because locomotion involves sophisticated neuromuscular control, sensory information processing, motion planning, coordinated muscle activation, and complicated interactions between the body and its physical environment. Despite extensive study for centuries, we have not yet fully understood the underlying physics and control mechanisms of these motions. It poses a grand challenge for scientists, engineers and artists. The focus of this thesis is to present a set of powerful computational tools that facilitate the study of the locomotion of humans and animals, for the applications in computer graphics and robotics.
 
 \section{State of the Art}
+
+The most popular techniques to synthesize motions in computer graphics are key frames or motion capture. Although both methods have produced impressive character animations and special effects in movies (Toy Story \cite and Avatar \cite{}), they have shortcomings. The key-frame method requires artistic expertise and laborious manual tuning. As a result, generating animations is a time-consuming and tedious task. For example, an 100-minute animated feature film produced by Pixar typically takes more than five years of development. On the other hand, the motion capture not only requires expensive equipment and tedious postprocessing, it is difficult to reuse the recorded data in other situations.
+
+A more principled way to synthesize motions of humans and animals is to computationally mimic the natural process  have shaped our motions. Our motions are shaped through millions of year of evolution in a world that obey physical laws. The paradigm of physically-based character animation first builds physical simulation and then optimize the motions of the character in the physically-simulated environment. Using this paradigm, many natural motions, including walking \cite{}, running \cite{}, flying \cite{} and swimming \cite{} emerge automatically from the optimization solution.
 
 compared to keyframes, motion capture, physically-based character animation is better and scalable, but there are a lot of challenges
 
@@ -20,6 +24,12 @@ physically-based character animation, relationship with the robotics, show some 
 
 
 \section{Approach}
+
+Our approach follows the general framework of physically-based character animation. All the methods share two common components, physical simulation and motion optimization. Physical simulation numerically solves the governing equations of motion to simulate various physical phenomena, such as rigid bodies, soft bodies and fluids. Motion optimization minimize a task-related objective function in the simulated environment to achieve certain locomotion task. For example, swimming in the most energy efficient way or riding a bicycle to follow a path without falling.
+
+The key difference between my work and previous works in this paradigm is that all the locomotion tasks presented in this thesis involves extremely complicated two-way interactions with the environment.
+
+
 Why should we care about complex environment?
 Common elements: physical simulation and motion optimization
 challenges at each of them and combining them
