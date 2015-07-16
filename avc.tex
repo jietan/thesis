@@ -4,14 +4,14 @@
 %       doublespaced,normalmargins,final]{gatech-thesis}
 % will generate a document that conforms to the graduate studies office
 % guidelines.
-
  \ifx\pdfoutput\undefined
    \usepackage[dvips,final]{graphicx}  % using latex+dvips
    \usepackage[dvips,usenames]{color}
- \else
+   \else
    \usepackage[pdftex,final]{graphicx} % using pdflatex
    \usepackage[pdftex,usenames]{color}
  \fi
+\usepackage{epstopdf}
 
 %define stuff in preamble
  \degree{Doctor of Philosophy}
