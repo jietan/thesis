@@ -1,12 +1,259 @@
 \chapter{Related Work}
 
-\section{Physical Simulation}
-\subsection{Articulated Rigid Bodies}
-\subsection{Fluids}
-\subsection{Soft Bodies}
+This chapter presents a summary of previous work that is most relevant to our methods. Since the two key components of our computational tools are physical simulation and controller optimization, we will begin with a brief review of related work in these two fields. Since the ultimate goal of our research is to transfer the controllers found in the simulation to the real robots, we will conclude this chapter with an overview of related works in controller transfer from virtual to real environments in robotics.
 
-\section{Motion Optimization}
-\subsection{Optimal Control}
-\subsection{Reinforcement Learning}
+\section{Physical Simulation}
+In order to simulate the physical environment, researchers borrow numerical techniques from the applied mathematics literature. Starting from the governing differential equations of the physical system, we discretize and numerically solve them using numerical methods. The most widely used methods include Eulerian methods, Lagrangian methods, hybrid methods and poition-based dynamics. These methods have produced realistic simulations for a wide variety of phenomena, such as rigid bodies, deformable bodies, fracture, fluid and cloth. In the next few sections, we will focus on simulating fluid, soft body, contact and bicycle dynamics, which we need to simulate in our work.
+
+\subsection{Fluids}
+Two most popular fluid simulation techniques in computer animation are Lagrangian method and Eulerian method. The Lagrangian approach treats the continuum as a particle system \cite{}. Monaghan\cite{} used the Smoothed Particle Hydrodynamics (SPH) method to solve the Navier-Stokes equations. It defines a smoothing kernel to interpolate the physical
+properties (velocities, densities, etc.) at an arbitrary position
+from the neighboring particles. One major problem associated with the SPH is to enforce the  incompressibility condition of the fluid. Early works \cite{} employed the ideal gas equation to relate pressure and density, which results in high compressibility and oscillations which cause severe visual artifacts. This problem was alleviated by solving a Poisson equation \cite{}, Tait equation \cite{}, using prediction-correction scheme and hybrid SPH methods \cite{}. This meshless method can operate more easily with irregular boundaries, between
+multiple fluids interaction and generally requires
+less computational resources. In addition, since it is easier to be implemented on a GPU, itis becoming increasingly popular in real time applications \cite{}.
+
+The Eulerian approach treat the fluid state as a continuous velocity field discretized
+on a fixed computational grid. Foster and Metaxas's work \cite{} was the first that
+solved the full 3D Navier-Stokes equations to animate fluids.
+Stam \cite{} improved it, achieving the unconditionally
+numerical stability by introducing the semi-Lagrangian
+method for the convection term and implicit solver for
+the viscosity and pressure terms. Although the Eulerian method is computationally intensive,it has produced stunning visual results, simulating a wide range of physical phenomena, including fire and smoke\cite{}, explosion \cite{}, surface tension \cite{}, non-Newtonian fluid \cite{} and multi-phase flow \cite{}.
+
+Since my research focus on locomotion synthesis, simulating fluids alone is not enough. Swimming involves the two-way interactions between the character and the fluid. Accurately modeling this two-way interaction is essential to simulate locomotion in the hydrodynamic environment. Many researchers have proposed various ways to
+simulate the two-way coupling between fluids and solids.  Takahashi et al. \cite{takahashi2002fluid-rigid}
+presented a simple alternating two-way coupling method between fluids and
+solid objects. The velocities of the solid
+objects served as the boundary conditions for fluid motion while the
+pressure field solved from the Navier-Stokes equations was integrated at the
+solid surface to provide a net force and a net torque exerted on the solid
+objects. Arash et al. \cite{arash2003simulatingfluid-solid} represented the solids by mass-spring models and fluids by marker particles.  The interactions were calculated through the mutual forces between the marker particles and mass nodes at the interface. Carlson et al. \cite{carlson2004rigid} proposed the rigid
+fluid method that treated solids as fluids at first
+and then projected the velocity field in the solid region onto a subspace
+satisfying the rigid constraints. Guendelman et al. \cite{guendelman2005thin} made use of an
+alternating approach that is generalized to include octree and thin
+shells.  They solved the pressure field for a
+second time by adding solid masses to the fluid grid density, which improves
+the pressure field. Klingner et al. \cite{klingner2006mesh} used a tetrahedral mesh for accurate boundary discretization and extended the mass conservation (projection) step
+to include the dynamics of rigid body. This was extended to model the interaction between fluids and deformable bodies \cite{chentanez2006simultaneous}. Batty et al. \cite{batty2007fast} derived a fast variationl approach that allowed sub-grid accuray using regular grids. Robinson et al. \cite{robinson2008two} developed a generic and momentum
+conserving technique to couple fluids to rigid/deformable solids and thin
+shells. The coupled system is symmetric indefinite and solved using MINRES.
+
+\subsection{Soft Bodies}
+Since the seminal work introduced by Terzpoulos
+\cite{Terzopoulos:1987}, researchers in computer graphics have
+simulated a wide variety of deformable phenomena including cloth
+\cite{Baraff:1998,Bridson:2002}, elasticity \cite{Muller:2002}, and
+plasticity \cite{O'Brien:1999,Bargteil:2007}. One popular technique is
+the Finite Element Method (FEM) \cite{Bathe:2007}, which uses a
+tetrahedral or hexahedral discretization to solve dynamic
+equations. The robustness of FEM simulation can be improved by
+handling inverted tetrahedra \cite{Irving:2004}, remeshing
+ill-conditioned elements \cite{Bargteil:2007}, or preserving volume
+without locking artifacts \cite{Irving:2007}. To improve the
+performance of FEM simulation, linear strain model and precomputed
+stiff matrix are often used. However, these models are only valid for
+small deformation. To simulate large deformation, M\"{u}ller \etal
+\cite{Muller:2002} proposed a corotational method to fix the
+volume inflation artifacts. Nesme \etal \cite{NPF05} suggested
+that linearization around the current deformed configuration reduces
+ghost torques. Precomputed deformation modes have also been used to
+interactively deform large structures
+\cite{James:2003,Barbic:2005,Kim:2009}.
+
+\subsection{Contact Modeling}
+Locomotion on land is achieved by a character actively and puposefully pushing the ground. As a result, an equal and opposite ground reaction force is exerted on the character through the contacts and changes its center of mass. Modeling contacts is an active research area in graphics. Early simulations use penalty forces \cite{}, whose magnitude is proportional to the depth of penetration. Despite its simplicity, this method severely limits the simulation time step and requires carefully parameter tunning. More recently, constraint-based methods, such as linear complementarity problem (LCP), are used to handle contacts. Stewart and Trinkle proposed an
+LCP formulation using an implicit time-stepping method to guarantee
+non-penetration, directional friction, and approximated Coulomb's
+friction cone conditions \cite{Stewart:1996}. Based on the LCP
+framework, many improved contact models were introduced recently in
+computer graphics, including using an efficient iterative method
+\cite{Erleben:2007}, a simple staggered sequence of projections
+\cite{Kaufman:2008}, or a progressive constrained manifold
+refinement \cite{Otaduy:2009}. 
+
+\subsection{Bicycle Dynamics} Early studies of bicycle dynamics date back to more than a century ago. As described in Meijaard et al. \cite{Meijaard2007}, Whipple \cite{Whipple1899} and Carvallo \cite{Carvallo1900} independently derived the first governing equations of bicycle dynamics. These equations were revised to account for the drag forces \cite{Collins1963}, tire slip \cite{Singh1964} and the presence of a rider \cite{van1975method}. Rankine \cite{Rankine1870} discussed the balance strategy of ``steering towards the direction of falling'', which forms the foundation of many studies on bicycle balance control, including ours. Despite this long history of research and the seemingly simple mechanics of bicycles, some physical phenomena exhibited by the bicycle movement still remain mysterious. One example is the self-stable characteristic of bicycles: A moving bicycle within a narrow range of forward speed can automatically correct its falling motion without any human intervention. In addition to the early belief that this phenomenon was attributed to gyroscopic effects of the rotating wheels \cite{Klein1910} or the \emph{trail}\footnote{The trail is the distance between the front wheel ground contact point and the steering axis.} \cite{Jones1970}, Kooijman et al. \cite{Kooijman2011} showed that the mass distribution over the whole bicycle also contributes to the self-stability. Even though the dynamic equations provide us with some intuition, we do not use this information directly in our algorithm because this is tailored specifically to normal riding situations where both tires touch the ground. This will be a major restriction in bicycle stunts.
+
+\section{Controller Optimization}
+
+Controlling character locomotion in a physically simulated environment has been extensively studied in both computer animation and robotics. Starting from the seminal work of Hodgins et al. \cite{Hodgins:1995:AHA} which demonstrated sophisticated biped
+controllers, such as gymnastic vaulting or tumbling, researchers have investigated different forms of locomotion, including walking \cite{Yin:2007,Wang:2012}, running \cite{Hodgins:1995:AHA,Kwon:2010}, flying \cite{Wu:2003} and swimming \cite{Grzeszczuk:1995}.
+
+\paragraph{Muscle modeling.} Modeling detailed human musculoskeletal system also requires
+simulating and controlling soft bodies. Previous work has
+demonstrated that complex interplay among bones, muscles, ligaments and
+other soft tissues can be modeled for individual body parts, including
+the neck \cite{Lee:2006}, the upper body
+\cite{Zordan:2006,Dilorenzo:2008,Lee:2009:CBM}, and hands
+\cite{Tsang:2005,Sueda:2008}. Using the volumetric data from the
+visible human data set, Teran \etal integrated a B-spline
+representation for muscles, a tetrahedra mesh for soft tissues, and a
+triangulated surface for each bone to simulate musculoskeletal
+behaviors \cite{Teran:2003,Teran:2005}. A striking difference of our
+work is that we focus on controlling deformation behaviors without
+skeletal support. This type of control mechanism resembles
+biomechanical movements using muscular-hydrostats, such as the
+tentacles of cephalopod mollusks or the trunks of elephants
+\cite{Kier:1985}. By using muscle contraction alone, we can generate
+functional motor skills, including elongating, shortening,
+bending, and twisting. We show that visually appealing behaviors that
+cannot be produced by skeleton-based systems emerge with
+appropriate control.
+
+\paragraph{Contact force optimization.} Velocity-based LCPs for contact
+modeling can have infinitely many solutions, but general LCP solvers,
+such as Lemke's algorithm, are incapable of ascertaining the quality of
+the solutions for a given criterion. This drawback is particularly
+undesirable when solving an optimal control problem that exploits the
+contact and dynamic state of the system. Due to the lack of robust
+schemes to formulate optimization with arbitrary objective function
+and linear complementarity constraints, many previous methods
+explicitly assumed that the contacts remain static
+\cite{Abe:2007,Jain:2009,Kim:2011:DCO} while optimizing control forces
+subject to equations of motion. This assumption significantly
+restricts the effectiveness of the controller for locomotion and balance
+because the controller is not allowed to actively exploit contact
+breakage, slipping contacts, or rolling contacts to achieve control
+goals. A few previous studies in mathematics addressed the problems of
+linear and convex quadratic programs with complementarity constraints
+(LPCCs and QPCCs) \cite{Hu:2008,Bai:2011}. They showed that global resolution of
+nonconvex problems in these two subclasses, including those infeasible
+and unbounded, can be accomplish in finite time. Instead of seeking
+a general solution, we develop our own specialized QPCC solver for
+the purpose of contact modeling. We exploit the physical meaning of
+complementarity constraints as heuristics to greatly improve the
+solution and performance of the solver.
+
+\paragraph{Balance control.} One central problem of locomotion is balance, which can be controlled by exerting virtual forces \cite{Pratt2001,Coros2010}, applying linear feedback \cite{Laszlo:1996,Yin:2007,daSilva:2008,Coros2010}, using nonlinear control policies \cite{Muico:2009}, planning the contact forces \cite{Muico:2009,Tan:2012}, employing reduced models \cite{Tsai:2010,Kwon:2010,mordatch2010,Coros2010,Ye:2010} and training in stochastic environments \cite{Wang:2010}.
+
+\paragraph{Optimal control.} Many researchers exploited optimization techniques or optimal control theory to improve the robustness of the controllers, as well as the quality
+of motions they produce. For example, the gains of feedback
+controllers can be optimized based on the dynamic state of balance in
+the reference trajectory
+\cite{daSilva:2008:ISS,Muico:2009:CAN,Ye:2010:SRM}. Continuation methods can be
+used to design challenging controllers in an adaptive fashion
+\cite{Yin:2008:CMA}.
+
+\paragraph{Reinforcement learning.} Value iteration is a widely-used reinforcement learning algorithm in computer graphics. Researchers have successfully applied (fitted) value iteration to generalize motion capture data \cite{Treuille:2007:NCA,Levine:2012:CCC}, to carry out locomotion tasks \cite{Coros:2009:RTC}, and to manipulate objects with hands \cite{Multifinger2013}. Applying value iteration to continuous state and action spaces is nontrivial because discretizing the space does not scale well to high dimensions \cite{Sutton:1998:IRL} and using function approximation often converges to a poor local minimum or might not converge at all \cite{Thrun93issuesin,Boyan95generalizationin}. Policy search \cite{Ng:2000:PPS} is another reinforcement learning algorithm, which directly searches for a mapping between the state space and the action space. Many studies on locomotion control \cite{Yin08,Wang:2009,Coros:2011,Tan:2011,Wang:2012,Geijtenbeek:2013} performed policy search on parameterized controllers. Stochastic optimization algorithms, such as
+Covariance Matrix Adaptation (CMA) \cite{hansen2004evaluating}, have also been applied to
+search control parameters when the problem domain is highly discontinuous
+\cite{Wu:2010:TAB,Wang:2010:OWC,Mordatch:2010:RPL}.
+
+\subsection{Locomotion Control in Hydrodynamic Environments}
+Although human motion has been the main focus in
+character animation, a number of researchers have achieved great
+realism in synthesizing the movement of other animals, such as worms
+\cite{Miller:1989:GDS}, fish \cite{tu1994artificial}, birds
+\cite{wu2003realistic}, dogs \cite{Kry:2009:ML}, and even imaginary
+creatures \cite{wampler2009optimal,hecker2008real}.
+
+Tu and Terzopoulos pioneered the animation of swimming fish using a a
+mass-spring system for the fish body and a simplified fluid
+model~\cite{tu1994artificial,terzopoulos1994artificial,Grzeszczuk95automatedlearning}. They used simulated annealing and the simplex method to discover swimming gaits. Their simulation also incorporated vision sensors, motor controllers, and behavioral modeling
+of eating, escape, schooling and mating.  The
+major difference between their paper and ours lies in the fluid model and the optimization technique. This early paper used a
+simplified fluid model while ours adopts a full Navier-Stokes solver and introduces a two-way coupling method between
+fluids and articulated figures in generalized coordinate.
+
+Sims \cite{sims1994creatures} investigated the simulated evolution of
+creature locomotion.  Sims' creatures were composed
+of blocks that are connected by articulated joints. He used genetic
+programming to evolve both the creature bodies and their controllers.  In
+addition to walking and jumping behaviors, some of his creatures also
+learned to swim in a simplified fluid environment.
+
+Wu and Popovi\'{c} \cite{wu2003realistic} used an articulated skeleton and deformable elements for
+feathers in order to animate the flight of birds.
+They used an optimization process to find the best wing beats in order to
+accurately follow a given path.  Yang et al. \cite{yang2004layered} used an articulated body
+representation, a simplified fluid model, and several layers of control to
+model human swimmers.  Kwatra et al. \cite{kwatra2009fluid} used an
+articulated body representation and two-way coupling between the body and a
+fluid simulation to model human swimming.  They used
+motion capture data of swimming motions as input to the swimmer control.
+Lentine et al. \cite{lentine2010creature} used an articulated skeleton with a deformable skin layer and
+two-way coupling to a fluid simulator to model figures that are moving in
+fluids.  They optimized for certain styles of
+motion using objective functions designed for effort minimization and drag
+minimization/maximization.  Their results also clearly demonstrated that
+using a full fluid simulator gives more realistic results than using a
+simplified fluid model.
+
+In the field of computational fluid dynamics (CFD), there is a small but
+growing literature on the simulation of swimming creatures.  These studies
+are typically focused on a single swimming style of one particular creature,
+and they usually make use of sophisticated fluid dynamics code, at a large cost in
+computational complexity, to generate more accurate and detailed fluid simulation. Often these studies are informed by laboratory
+studies of the creature in question, including flow data that has been
+gathered using methods such as particle image
+velocimetry~\cite{grant1997particle}.  A good representative of such work is
+the investigation of Shiragaonkar et al. of the knifefish, which is a fish
+that propels itself using waves that travel along its elongated lower fin
+(gymnotiform swimming)~\cite{shirgaonkar2008hydrodynamics}.  The simulator
+for this work used an immersed boundary method, and the simulations were
+performed on a 262 compute node Linux cluster.  Another example of such a
+study is the work of Kern and Koumoutakos \cite{kern2006simulations} on the simulation of eels
+(anguilliform swimming).  In this work, the fluid
+grid is matched to the eel body by using a cylindrical grid in most of the
+domain and a hemisphere-based grid for the head of the eel.  They used the
+CMA technique~\cite{hansen2004evaluating} to optimize a five parameter
+motion model.
+
+\subsection{Locomotion Control for Soft Body Characters}
+
+Controlling physically simulated soft bodies is a practical problem in
+computer animation. Previous work offers a rich repertoire of
+techniques that enable the artists to control the shape of soft
+bodies. Many methods proposed to track a given input animation or
+keyframes using interpolated resting shapes \cite{Kondo:2005}, a
+constrained Lagrangian solver \cite{Bergou:2007}, a linear quadratic
+regulator \cite{Barbic:2008}, or reduced spacetime optimization
+\cite{Barbic:2009}. Martin \etal \cite{Martin:2011} introduced an
+example-based approach for simulating soft bodies with desired
+behaviors. The user supplies the system with a few poses to guide the
+simulation results toward preferred shapes. Shape control for soft
+bodies has also been applied to physics-based facial
+animation. Sifakis \cite{Sifakis:2005} formulated an optimization
+to automatically determine muscle activation that tracks a sparse set
+of motion capture markers. Our work also aims to track predefined
+shapes using muscle activation. Unlike Sifakis's work, we do not
+assume a steady state when computing muscle activation because inertia
+effects play a key role in the types of motion we focus on in this
+paper. In addition, while the pose of a face is entirely determined by
+muscle activation and kinematic parameters, our muscle activation
+needs to handle issues due to discontinuous contact forces and
+balance.
+
+In contrast to shape control, locomotion control for soft bodies is
+relatively less explored in computer animation. The main difficulty in
+locomotion is to control an under-actuated system by exploiting
+external forces. Previous work has shown that mass-spring systems can
+be used to simulate motion of worms, snakes, and fish
+\cite{Miller:1988,Tu:1994,Grzeszczuk:1995}. Miller
+\cite{Miller:1988} utilized anisotropic frictional forces such
+that a worm can slide forward by contracting elastic body segments. Tu
+and Terzopoulos \cite{Tu:1994} applied a simple fluid dynamic
+model to provide forward thrust when a fish deforms its body. Recent
+work by Kim and Pollard \cite{Kim:2011:DCO,Kim:2011} demonstrated
+that much more complex locomotion can be achieved by effective soft
+body control. They combined an efficient skeleton-driven FEM simulator
+and an optimization-based controller to create many interesting
+behaviors, such as a star fish crawling out of a box and a fish
+flipping back and forth. Inspired by their compelling results, we
+wish to generate even more complex locomotion that requires intricate
+balance control, using only muscle contraction without an actuated
+skeleton. Consequently, our work demands a more sophisticated contact
+modeling method during control optimization to handle discrete
+switches between static contact, sliding contact, and contact
+breakage.
+
+\subsection{Locomotion Control with a Passive Mechanical Device} Compared to walking and running, fewer studies focus on locomotion that involves a character that is controlling another device with complex dynamics. Van de Panne and Lee \cite{vandepanne:2003} built a 2D ski simulator and that relies on user inputs to control the character. This work was later extended to 3D by Zhao and Van de Panne \cite{Zhao:2005}. Planar motions, including pumping a swing, riding a seesaw and even pedaling a unicycle, were studied \cite{Hodgins:1992}. Hodgins et al. \cite{Hodgins:1995:AHA} demonstrated that normal cycling activities, including balance and steering, can be achieved using simple proportional-derivative (PD) controllers for the handlebar angle. These linear feedback controllers are sufficient for normal cycling, but they cannot generate the bicycle stunts demonstrated in this paper.
+
+The bicycle control problem has been investigated in the reinforcement learning literature. Randl$\o$v and Alstr$\o$m \cite{RandlovAlstrom:1998} used SARSA($\lambda$), a model free reinforcement learning algorithm, to learn to balance a bicycle and ride to a goal. This algorithm requires a large number of simulation trials and the converged result is still not ideal. Ng and Jordan \cite{Ng:2000:PPS} applied policy search to the same bicycle learning problem. They parameterized the policy with neural networks and used the policy gradient to find the optimal network weights. The resulting controller significantly outperformed the results in the previous study. Our method is inspired by the policy search algorithm. However, to adopt this algorithm to learn more challenging tasks, we need to overcome two difficulties: First, we do not have reliable policy gradient information because of the frequent contact events. Second, we do not know a good policy parametrization, which is difficult to design manually by trial and error for each bicycle stunt. We use NEAT \cite{Stanley:2002:ENN} which was first introduced to graphics by Allen and Faloutsos \cite{Allen2009}, to address both difficulties. NEAT was first introduced to graphics by Allen and Faloutsos \cite{Allen2009}. They used it to evolve locomotion controllers but were not able to achieve stable and sustained walking. We show in this paper that With appropriate choices of the states and actions, combining policy search with NEAT can successfully learn the most demanding balance tasks on a bicycle. Please read Section ~\ref{sec:improvement} for more details about NEAT.
 
 \section{Controller Transfer from Virtual Characters to Real Robots}
+Research in computer animation has demonstrated robust locomotion control for challenging tasks in physically simulated environments. However, we have not seen any robots that can demonstrate similar capabilities. This gap is known as \emph{Reality Gap}: A controller that can work effectively in physical simulation may not work in the real environment. This gap is caused by sensor noise, latency, hardware limitations, unmodeled dynamics, inaccurate model and other unknown factors. Nolfi and Floreano \cite{Nolfi:2000} outlined the problems that are related to crossing the reality gap and identified the key difficulties. A large amount of approaches were proposed in robotics to cross this reality gap. We refer the readers to Eaton \cite{Eaton:2015} for a comprehensive review of this topic.
+
+One way to cross the reality gap is to increase the robustness of the controller so that it is more likely to work in a different environment, such as the real world. A more robust controller can be found by injecting noise to the simulation \cite{Miglino94,Jakobi95,Miglino96}, leveraging multiple simulators \cite{Boeing:2012}, and optimize the controller through ensembles of perturbed models \cite{Mordatch:2015}. Although these methods do not explicitely involve experiments on the robot during controller optimization, they have been shown effective to increase the probability of a successful controller transfer.
+
+Another direction to close the reality gap is to improve the simulation model so that it better reflects the real world dynamics. The simulation is improved by measuring and minimizing the discrepancy between the simulation results and the measured data in the robot experiments. Sehoon and Yamane \cite{HA:2015} modeled this discrepancy using nonparametric models, such as Gaussian process. Abbeel et al. \cite{Abbeel:2006} used an inaccurate physical model but successively grounded the policy evaluations using real-life trials. Mouret et al. \cite{MouretKD13, Koos:2010} derived a measure of transferability by comparing fitness scores between the simulation and the real experiments. Grounded simulated learning approach \cite{Farchy:2013} interatively optimized the controller, measured the discrepancy and modified the simulator using supervised learning algorithms. Bongard and Lipson \cite{BongardL05} coevolved the controller and the simulator using an iterative estimation-exploration process. Similarly, Zagal et al. \cite{zagal2004} introduced the ``back-to-reality approach'' approach, which also involved the coevolution but used a different measure of discrepancy.
