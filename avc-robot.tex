@@ -38,7 +38,7 @@ In character animations, joint torques $\tau$ are often chosen as the control si
 \begin{figure}[t]
 \centering
 \includegraphics[width=5in]{figures/ax18gain.eps}
-\caption{The mapping between $q-\bar{q}$ and $U$ for a AX-18 motor \cite{}. The x-axis is $q-\bar{q}$ while the y-axis is $U$.}
+\caption{The mapping between $q-\bar{q}$ and $U$ for a AX-18 motor \cite{AX18:2015}. The x-axis is $q-\bar{q}$ while the y-axis is $U$.}
 \label{fig:actuatorMap}
 \end{figure}
 
@@ -48,7 +48,7 @@ Most of the actuators on our robot are AX-18, which use the following mapping (F
   \label{eqn:voltageErrorRelation}
 \end{equation}
 
-We adopt a model for the ideal DC motor \cite{} to derive the relation between power level $U$ and output torque $\tau$. The assumption of using an ideal model is good since an AX-18 servo contain a high-quality DC motor. The derivation follows by considering the power balance present in the motor at a constant voltage U:
+We adopt a model for the ideal DC motor \cite{SchwarzB:2013} to derive the relation between power level $U$ and output torque $\tau$. The assumption of using an ideal model is good since an AX-18 servo contain a high-quality DC motor. The derivation follows by considering the power balance present in the motor at a constant voltage U:
 \begin{equation}
   P_{electric} = P_{mechanic} + P_{heat}
   \label{eqn:powerBalance}
@@ -67,7 +67,7 @@ where $k_{\tau}$ is the torque constant, which is determined by the hardware des
   \tau_{motor}=\tau+\tau_f
   \label{eqn:torqueBalance}
 \end{equation}
-The friction torque can be further divided into viscous friction and Coulomb friction \cite{}:
+The friction torque can be further divided into viscous friction and Coulomb friction \cite{SchwarzB:2013}:
 \begin{equation}
   \tau_f = -k_v\dot{q}-k_c\sgn(\dot{q})
   \label{eqn:frictionComponents}
@@ -80,15 +80,80 @@ Combining eq.(\ref{eqn:votageTorqueRelation}), (\ref{eqn:torqueBalance}) and (\r
 \nonumber & = k_p(q-\bar{q}) + k_d\dot{q} + k_c\sgn(\dot{q})\\
   \label{eqn:torqueErrorRelationSimple}
 \end{align}
-where $k_p=\frac{k_{\tau}k_e}{R}$ and $k_d=k_v-\frac{k_{\tau}^2}{R}$. Note that it is possible to compute $k_p$, $k_d$ and $k_c$ if the related parameters are given in the specification sheet of the motor. However, this information is not available for the motors that we use. In Chapter 6.6, we will show how to design experiments to measure these parameters. Plugging eq.(\ref{eqn:torqueErrorRelationSimple}) into (\ref{eq:robotdynamics}), we get a dynamics equation that use the reference joint motion as the control signal.
-\begin{equation}
-\mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}}) = k_p(\mathbf{q}-\bar{\mathbf{q}}) + k_d\dot{\mathbf{q}} + k_c\sgn(\dot{\mathbf{q}})+\mathbf{Jf}
+where $k_p=\frac{k_{\tau}k_e}{R}$ and $k_d=k_v-\frac{k_{\tau}^2}{R}$. Note that it is possible to compute $k_p$, $k_d$ and $k_c$ if the related parameters are given in the specification sheet of the motor. However, this information is not available for the motors that we use. In Chapter 6.6, we will show how to design experiments to measure these parameters. Plugging eq.(\ref{eqn:torqueErrorRelationSimple}) into (\ref{eq:robotdynamics}), and taking torque limits $[\tau_{min}, \tau_{max}]$ into consideration, we get the dynamics equation that use the reference joint motion as the control signal.
+\begin{displaymath}
+ \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}}) = \tau+\mathbf{Jf} \\
+  \end{displaymath}
+where 
+\begin{displaymath}\tau =
+  \left\{
+    \begin{array}{ll}
+      \tau_{min} & \text{if }\tau < \tau_{min},\\
+      \tau_{max} & \text{if }\tau > \tau_{max},\\
+      k_p(\mathbf{q}-\bar{\mathbf{q}}) + k_d\dot{\mathbf{q}} + k_c\sgn(\dot{\mathbf{q}}) & \text{otherwise.}\\
+    \end{array}
+  \right.
   \label{eqn:robotDynamicsControl}
-\end{equation}
+\end{displaymath}
 
 To guarantee the stability of the simulation, we use 1ms as the simulation time step. Many animation system use the same simulation and control frequency, which means that a control signal $\bar{\mathbf{q}}$ is updated every simulation time step. However, we found that the average latency of the whole control loop on our robot is 16ms, including the time to send actuator commands and to read sensor measurements through the serial port. To better match our simulation with the real robot situation, we choose to only update the control signal every 16 time steps.
 
 \section{Controller Optimization}
+
+Given the physical simulation, we can design controllers to enable the robot achieve various locomotion tasks in the simulated environment. The three tasks are rising from leaning, sitting and kneeling position to an erect stance (Figure \ref{fig:task}). For each task, the joint configuration of the initial pose and the final pose are provided by the user. The goal of the controller is to execute a sequence of control signals so that the robot can move from the initial to the final pose without losing balance. We purposefully choose to use only feedforward controllers in this work. Without feedback control, the controller transfer will not succeed even if the simulation and the real-world environment differ greatly. This can put the simulation calibration subsystem into a more thorough test. For this reason, the control signal $\bar{\mathbf{q}}(t)$ is a only function of time $t$ and does not depend on the states of the robot $\mathbf{q}$ and $\dot{\mathbf{q}}$.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=4in]{figures/initialFinal}
+  \caption{The initial and the final joint configuration of the locomotion tasks. Top row: the initial poses of leaning, sitting and kneeling. Bottom row: the final standing pose for all three tasks.}
+  \label{fig:task}
+\end{figure}
+
+
+We first formulate a trajectory optimization problem for each task.
+\begin{align}
+ \label{eqn:obj}&\min_{\bar{\mathbf{q}}(t)} E(\mathbf{q}(t))\\
+\nonumber  \mathrm{subject\;} &\mathrm{to} \\
+\label{eqn:dyn1} & \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}}) =\tau + \mathbf{Jf}\\
+\label{eqn:dyn2} &\tau =
+  \left\{
+    \begin{array}{ll}
+      \tau_{min} & \text{if }\tau < \tau_{min},\\
+      \tau_{max} & \text{if }\tau > \tau_{max},\\
+      k_p(\mathbf{q}-\bar{\mathbf{q}}) + k_d\dot{\mathbf{q}} + k_c\sgn(\dot{\mathbf{q}}) & \text{otherwise.}\\
+    \end{array}
+  \right.\\
+\label{eqn:boundary1}&\bar{\mathbf{q}}(0) = \mathbf{q}_0\\
+\label{eqn:boundary2}&\bar{\mathbf{q}}(t) = \mathbf{q}_T, \text{if } t \geq T
+\end{align}
+
+This optimization searches for a trajectory of desired joint configuration $\bar{\mathbf{q}}(t)$ that minimizes a task related objective function (eq.(\ref{eqn:obj})), and subject to physical constraints (eq.(\ref{eqn:dyn1}) and (\ref{eqn:dyn2})) and boundary conditions (eq.(\ref{eqn:boundary1}) and (\ref{eqn:boundary2})). $\mathbf{q}_0$ and $\mathbf{q}_T$ are the initial and the final poses (Figure \ref{fig:task}) respectively, specified by the user.
+
+We use a simple objective function to maintain balance.
+\begin{displaymath}
+E(\mathbf{q}(t))=\int_0^{T+1} -\frac{1}{\theta(t)+\epsilon}\mathrm{d}t\\
+\end{displaymath}
+where $\theta(t)$ is the angle between the up direction between in the local frame of the robot's root and in the global frame $(0,0,1)$. It measures whether the robot falls out of balance. $\epsilon$ is a small positive number to prevent the denominator being zero. We choose $\epsilon=0.1$ in all our tasks. The upper limit of the integration is $T+1$, where $T$ is the duration of the entire rising motion. The extra one second is to wait the robot to settle down. We use the time horizon $T+1$ because it is still possible that the robot can fall during the settling down phase and our objective function needs to penalize this situation.
+
+There are two main difficulties to solve the above optimization directly. First, the number of variables is large. Since our robot has 16 degrees of freedom and a rising motion can often take more than two seconds, the above space-time optimization problem can have more than 1000 variables. To solve the this problem, we use keyframes $\bar{\mathbf{q}}_1, \bar{\mathbf{q}}_2, ..., \bar{\mathbf{q}}_n$ to represent the trajectories of the desired poses $\bar{\mathbf{q}}(t)$. In between the keyframes, we linearly interpolated the poses from two adjacent keyframes. With this simplification, the \emph{control parameters} that we need to optimize consist a few keyframes and the time interval between two adjacent keyframes rather of a large number of poses for the entire trajectory. We further halve the search dimension by exploiting the symmetry of the motion. We found that all three tasks can be achieved with symmetric motions. Thus we constrain that the joint motions on the left bodies mirrors those of the right bodies. In addition, we hope that the controller can use agile lower-body motions to stand up instead of using the help from hands. For this reason, the freeze the joints at the shoulders and the elbows. This focus the controller to the motions of the lower body, which further reduces the size of the optimization problem.
+
+The second difficulty is that during the motion, discrete contact events can happen frequently. They invalidate the gradient information, which imposes additional challenges for the continuous optimization algorithms. We choose to use Covariance Matrix Adaptation (CMA) \cite{Hansen:2009}, which can handle discontinous contacts, to optimize the control parameters. Starting from an initial Gaussian distribution, CMA samples this distribution for a set of control parameters, evaluates them using physical simulations, discards the inferior samples and updates the distribution according to the remaining good samples. With a number of iterations, the distribution moves and shrinks, and eventually converges to a good controller parameter that can successfully fulfill the task in the simulation.
+
 \section{Simulation Calibration}
 \section{Results}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/lean2Stand}
+  \caption{The results of the lean-to-stand task in the simulation and on the real robot.}
+  \label{fig:lean2Stand}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/kneel2Stand}
+  \caption{The results of the kneel-to-stand task in the simulation and on the real robot.}
+  \label{fig:kneel2Stand}
+\end{figure}
+
 \section{Discussion}
