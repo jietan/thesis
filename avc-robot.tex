@@ -23,17 +23,17 @@ We have designed a system that can automatically design locomotion controllers f
 
 \subsection{Dynamics Equations}
 
-We model the robot as an articulated rigid body system in our simulator. We solve the governing equations of motion eq.(\ref{eq:robotdynamics}) in the generalized coordinates.
+We model the robot as an articulated rigid body system in our simulator. We represent the states of the system $(\mathbf{x}, \dot{\mathbf{x}})$ in the generalized coordinate, where $\mathbf{x}$ include the global position $\mathbf{p}$, orientation $\mathbf{r}$ of the root link, and the joint angles $\mathbf{q}$. We solve the governing equations of motion eq.(\ref{eq:robotdynamics}) in the generalized coordinates.
 
 \begin{equation}
 \label{eq:robotdynamics}
-\mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}})=\mathbf{\tau}+\mathbf{Jf}
+\mathbf{M}(\mathbf{x})\mathbf{\ddot{x}}+\mathbf{C}(\mathbf{x},\mathbf{\dot{x}})=\mathbf{\tau}+\mathbf{Jf}
 \end{equation}
-where $\mathbf{q}$, $\mathbf{\dot{q}}$ and $\mathbf{\ddot{q}}$ are joint angles, velocities and accelerations respectively. $\mathbf{M}(\mathbf{q})$ is the mass matrix and $\mathbf{C}(\mathbf{q},\mathbf{\dot{q}})$ is the Coriolis and Centrifugal force. $\mathbf{\tau}$ are joint torques exerted by the actuators. $\mathbf{J}$ is the Jacobian matrix and $\mathbf{f}$ is the external contact force, which is computed based on linear complementarity conditions. In our implementation, we use DART to solve eq.(\ref{eq:robotdynamics}) along with the contact forces.
+where $\mathbf{M}(\mathbf{x})$ is the mass matrix and $\mathbf{C}(\mathbf{x},\mathbf{\dot{x}})$ is the Coriolis and Centrifugal force. $\mathbf{\tau}$ are joint torques exerted by the actuators. $\mathbf{J}$ is the Jacobian matrix and $\mathbf{f}$ is the external contact force, which is computed based on linear complementarity conditions. In our implementation, we use DART to solve eq.(\ref{eq:robotdynamics}) along with the contact forces.
 
 \subsection{Actuator Model}
 
-In character animations, joint torques $\tau$ are often chosen as the control signal since they can be directly integrated in eq.(\ref{eq:robotdynamics}). However, the control signal for the robot that we use in the experiments, ROBOTIS BIOLOID GP, is the desired joint configuration $\bar{q}$. Given difference between desired and current joint configuration ${q-\bar{q}}$, the actual servo first maps it to a corresponding power level $U$ and eventually outputs joint torque according to the internal actuator dynamics.
+In character animations, joint torques $\tau$ are often chosen as the control signal since they can be directly integrated in eq.(\ref{eq:robotdynamics}). However, the control signal for the robot that we use in the experiments, ROBOTIS BIOLOID GP, is the desired angle $\bar{q}$ for each joint. Given difference between desired and current joint configuration ${q-\bar{q}}$, the actual servo first maps it to a corresponding power level $U$ and eventually outputs joint torque according to the internal actuator dynamics.
 
 \begin{figure}[t]
 \centering
@@ -80,9 +80,9 @@ Combining eq.(\ref{eqn:votageTorqueRelation}), (\ref{eqn:torqueBalance}) and (\r
 \nonumber & = k_p(q-\bar{q}) + k_d\dot{q} + k_c\sgn(\dot{q})\\
   \label{eqn:torqueErrorRelationSimple}
 \end{align}
-where $k_p=\frac{k_{\tau}k_e}{R}$ and $k_d=k_v-\frac{k_{\tau}^2}{R}$. Note that it is possible to compute $k_p$, $k_d$ and $k_c$ if the related parameters are given in the specification sheet of the motor. However, this information is not available for the motors that we use. In Chapter 6.6, we will show how to design experiments to measure these parameters. Plugging eq.(\ref{eqn:torqueErrorRelationSimple}) into (\ref{eq:robotdynamics}), and taking torque limits $[\tau_{min}, \tau_{max}]$ into consideration, we get the dynamics equation that use the reference joint motion as the control signal.
+where $k_p=\frac{k_{\tau}k_e}{R}$ and $k_d=k_v-\frac{k_{\tau}^2}{R}$. We call these values $k_p$, $k_d$ and $k_c$ \emph{actuator gains}. Note that it is possible to compute actuator gains if the related parameters are given in the specification sheet of the motor. However, this information is not available for the motors that we use. In Chapter 6.6, we will show how to design experiments to measure these parameters. Plugging eq.(\ref{eqn:torqueErrorRelationSimple}) into (\ref{eq:robotdynamics}), and taking torque limits $[\tau_{min}, \tau_{max}]$ into consideration, we get the dynamics equation that use the reference joint motion as the control signal.
 \begin{displaymath}
- \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}}) = \tau+\mathbf{Jf} \\
+ \mathbf{M}(\mathbf{x})\mathbf{\ddot{x}}+\mathbf{C}(\mathbf{x},\mathbf{\dot{x}}) = \tau+\mathbf{Jf} \\
   \end{displaymath}
 where 
 \begin{displaymath}\tau =
@@ -96,11 +96,11 @@ where
   \label{eqn:robotDynamicsControl}
 \end{displaymath}
 
-To guarantee the stability of the simulation, we use 1ms as the simulation time step. Many animation system use the same simulation and control frequency, which means that a control signal $\bar{\mathbf{q}}$ is updated every simulation time step. However, we found that the average latency of the whole control loop on our robot is 16ms, including the time to send actuator commands and to read sensor measurements through the serial port. To better match our simulation with the real robot situation, we choose to only update the control signal every 16 time steps.
+To guarantee the stability of the simulation, we use 1ms as the simulation time step. Many animation system use the same simulation and control frequency, which means that a control signal $\bar{\mathbf{q}}$ is updated every simulation time step. However, we find that the average latency of the whole control loop on our robot is 16ms, including the time to send actuator commands and to read sensor measurements through the serial port. To better match our simulation with the real robot situation, we choose to only update the control signal every 16 time steps.
 
 \section{Controller Optimization}
 
-Given the physical simulation, we can design controllers to enable the robot achieve various locomotion tasks in the simulated environment. The three tasks are rising from leaning, sitting and kneeling position to an erect stance (Figure \ref{fig:task}). For each task, the joint configuration of the initial pose and the final pose are provided by the user. The goal of the controller is to execute a sequence of control signals so that the robot can move from the initial to the final pose without losing balance. We purposefully choose to use only feedforward controllers in this work. Without feedback control, the controller transfer will not succeed even if the simulation and the real-world environment differ greatly. This can put the simulation calibration subsystem into a more thorough test. For this reason, the control signal $\bar{\mathbf{q}}(t)$ is a only function of time $t$ and does not depend on the states of the robot $\mathbf{q}$ and $\dot{\mathbf{q}}$.
+Given the physical simulation, we can design controllers to enable the robot achieve various locomotion tasks in the simulated environment. The three tasks are rising from leaning, sitting and kneeling position to an erect stance (Figure \ref{fig:task}). For each task, the joint configuration of the initial pose and the final pose are provided by the user. The goal of the controller is to execute a sequence of control signals so that the robot can move from the initial to the final pose without losing balance. We purposefully choose to use only feedforward controllers in this work. Without feedback control, the controller transfer will not succeed even if the simulation and the real-world environment differ greatly. This can put the simulation calibration subsystem into a more thorough test. For this reason, the control signal $\bar{\mathbf{q}}(t)$ is a only function of time $t$ and does not depend on the states of the robot $\mathbf{x}$ and $\dot{\mathbf{x}}$.
 
 \begin{figure}[!t]
   \centering
@@ -112,9 +112,9 @@ Given the physical simulation, we can design controllers to enable the robot ach
 
 We first formulate a trajectory optimization problem for each task.
 \begin{align}
- \label{eqn:obj}&\min_{\bar{\mathbf{q}}(t)} E(\mathbf{q}(t))\\
+ \label{eqn:obj}&\min_{\bar{\mathbf{q}}(t)} E_{ctrl}(\mathbf{x}(t))\\
 \nonumber  \mathrm{subject\;} &\mathrm{to} \\
-\label{eqn:dyn1} & \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}}) =\tau + \mathbf{Jf}\\
+\label{eqn:dyn1} & \mathbf{M}(\mathbf{x})\mathbf{\ddot{x}}+\mathbf{C}(\mathbf{x},\mathbf{\dot{x}}) =\tau + \mathbf{Jf}\\
 \label{eqn:dyn2} &\tau =
   \left\{
     \begin{array}{ll}
@@ -123,29 +123,69 @@ We first formulate a trajectory optimization problem for each task.
       k_p(\mathbf{q}-\bar{\mathbf{q}}) + k_d\dot{\mathbf{q}} + k_c\sgn(\dot{\mathbf{q}}) & \text{otherwise.}\\
     \end{array}
   \right.\\
-\label{eqn:boundary1}&\bar{\mathbf{q}}(0) = \mathbf{q}_0\\
+\label{eqn:boundary1}&\bar{\mathbf{x}}(0) = \mathbf{x}_0\\
 \label{eqn:boundary2}&\bar{\mathbf{q}}(t) = \mathbf{q}_T, \text{if } t \geq T
 \end{align}
 
-This optimization searches for a trajectory of desired joint configuration $\bar{\mathbf{q}}(t)$ that minimizes a task related objective function (eq.(\ref{eqn:obj})), and subject to physical constraints (eq.(\ref{eqn:dyn1}) and (\ref{eqn:dyn2})) and boundary conditions (eq.(\ref{eqn:boundary1}) and (\ref{eqn:boundary2})). $\mathbf{q}_0$ and $\mathbf{q}_T$ are the initial and the final poses (Figure \ref{fig:task}) respectively, specified by the user.
+This optimization searches for a trajectory of desired joint configuration $\bar{\mathbf{q}}(t)$ that minimizes a balance related objective function (eq.(\ref{eqn:obj})), and subject to physical constraints (eq.(\ref{eqn:dyn1}) and (\ref{eqn:dyn2})) and boundary conditions (eq.(\ref{eqn:boundary1}) and (\ref{eqn:boundary2})). $\mathbf{x}_0$ is the initial condition, and $\mathbf{q}_T$ is the final pose (Figure \ref{fig:task}), both of which are provided by the user. Note that although we can specify the global translation $\mathbf{p}_0$, rotation $\mathbf{r}_0$ and joint angles $\mathbf{q}_0$ in the initial condition, we can only specify the desired joint angles for the final state because the global translation and rotation are determined by the physical simulation.
 
-We use a simple objective function to maintain balance.
-\begin{displaymath}
-E(\mathbf{q}(t))=\int_0^{T+1} -\frac{1}{\theta(t)+\epsilon}\mathrm{d}t\\
-\end{displaymath}
-where $\theta(t)$ is the angle between the up direction between in the local frame of the robot's root and in the global frame $(0,0,1)$. It measures whether the robot falls out of balance. $\epsilon$ is a small positive number to prevent the denominator being zero. We choose $\epsilon=0.1$ in all our tasks. The upper limit of the integration is $T+1$, where $T$ is the duration of the entire rising motion. The extra one second is to wait the robot to settle down. We use the time horizon $T+1$ because it is still possible that the robot can fall during the settling down phase and our objective function needs to penalize this situation.
+With a reasonably chosen actuator gains, the robot can alway achieve the final pose. In this case, the criterion of success for all the tasks is whether the robot remain upright at the end of its motion. We use the following objective function to encapsulate motions that can maintain an upright orientation.
 
-There are two main difficulties to solve the above optimization directly. First, the number of variables is large. Since our robot has 16 degrees of freedom and a rising motion can often take more than two seconds, the above space-time optimization problem can have more than 1000 variables. To solve the this problem, we use keyframes $\bar{\mathbf{q}}_1, \bar{\mathbf{q}}_2, ..., \bar{\mathbf{q}}_n$ to represent the trajectories of the desired poses $\bar{\mathbf{q}}(t)$. In between the keyframes, we linearly interpolated the poses from two adjacent keyframes. With this simplification, the \emph{control parameters} that we need to optimize consist a few keyframes and the time interval between two adjacent keyframes rather of a large number of poses for the entire trajectory. We further halve the search dimension by exploiting the symmetry of the motion. We found that all three tasks can be achieved with symmetric motions. Thus we constrain that the joint motions on the left bodies mirrors those of the right bodies. In addition, we hope that the controller can use agile lower-body motions to stand up instead of using the help from hands. For this reason, the freeze the joints at the shoulders and the elbows. This focus the controller to the motions of the lower body, which further reduces the size of the optimization problem.
+\begin{equation}
+  E_{ctrl}(\mathbf{q}(t))=\int_0^{T+1} -\frac{1}{\alpha(t)+\epsilon}\mathrm{d}t
+  \label{eqn:controllerObj}
+\end{equation}
+where $\alpha(t)$ is the angle between the up direction between in the local frame of the robot's root and in the global frame $(0,0,1)$. It measures whether the robot falls out of balance. $\epsilon$ is a small positive number to prevent the denominator being zero. We choose $\epsilon=0.1$ in all our tasks. The upper limit of the integration is $T+1$, where $T$ is the duration of the entire rising motion. The extra one second is to wait the robot to settle down. We use the time horizon $T+1$ because it is still possible that the robot can fall during the settling down phase and our objective function needs to penalize this situation.
+
+There are two main difficulties to solve the above optimization directly. First, the number of variables is large. Since our robot has 16 degrees of freedom and a rising motion can often take more than two seconds, the above space-time optimization problem can have more than 1000 variables. To solve the this problem, we use keyframes $\bar{\mathbf{q}}_1, \bar{\mathbf{q}}_2, ..., \bar{\mathbf{q}}_n$ to represent the trajectories of the desired poses $\bar{\mathbf{q}}(t)$. In between the keyframes, we linearly interpolated the poses from two adjacent keyframes. With this simplification, the \emph{control parameters} that we need to optimize consist a few keyframes and the time interval between two adjacent keyframes rather of a large number of poses for the entire trajectory. We further halve the search dimension by exploiting the symmetry of the motion. We find that all three tasks can be achieved with symmetric motions. Thus we constrain that the joint motions on the left bodies mirrors those of the right bodies. In addition, we hope that the controller can use agile lower-body motions to stand up instead of using the help from hands. For this reason, the freeze the joints at the shoulders and the elbows. This focus the controller to the motions of the lower body, which further reduces the size of the optimization problem.
 
 The second difficulty is that during the motion, discrete contact events can happen frequently. They invalidate the gradient information, which imposes additional challenges for the continuous optimization algorithms. We choose to use Covariance Matrix Adaptation (CMA) \cite{Hansen:2009}, which can handle discontinous contacts, to optimize the control parameters. Starting from an initial Gaussian distribution, CMA samples this distribution for a set of control parameters, evaluates them using physical simulations, discards the inferior samples and updates the distribution according to the remaining good samples. With a number of iterations, the distribution moves and shrinks, and eventually converges to a good controller parameter that can successfully fulfill the task in the simulation.
 
 \section{Simulation Calibration}
+
+Although the optimal controllers $\bar{\mathbf{u}}(t)$ can work effectively in the simulation, they may fail to achieve the tasks when used on the robot due to the Reality Gap. To cross this gap, we develop a simulation calibration subsystem, whose goal is to improve the simulation accuracy, which would significantly increase the chance that the controller can be successfully transfered to the real robot. In this subsystem, we formulate an optimization (eq.~(\ref{eqn:calibration})) that searches for the \emph{simulation parameters} $\mathbf{\theta}$ so that the \emph{discrepancy} $E_{cali}$ is minimized between the simulated results and the robot performance in the real environment.
+
+\begin{equation}
+ \min_{\mathbf{\theta}} E_{ctrl}
+\label{eqn:calibration}
+\end{equation}
+
+Many parameters $\mathbf{\theta}$ need to be set before a physical simulation starts, for example, the mass, the moment of inertia, the center of mass of each body, the coefficient of restitution, the coefficient of Coulomb friction, the gains of the actuator and many more. Changing simulation parameters can drastically alter the results of physical simulations. The accuracy of a physical simulation highly depends on the accuracy of these parameter settings. Simulation parameters are often set based on the estimation from experience, the specification of the robot, and the measurement from experiments. In our experiments, we find that many of the parameters are inaccurate. For example, the total mass of the robot is less than 1.1kg according to the CAD file while our own measurement is around 1.5kg. The height of center of mass differs more than 1cm between CAD file and our measurement. This difference in parameters could be due to the manufacturing errors and the weight of cables, glues, nuts and bolts that were used in assembling the robot. Instead of fixing the simulation parameters, we decide to adjust them during simulation calibration in order to make the simulation more accurate.
+
+We improve the simulation accuracy by minimizing the discrepancy $E_{ctrl}$, which is defined as the difference between the state trajectories in simulations and those collected in real robot experiments. Recall that our entire algorithm is an iterative process. At the $n$th iteration, controller optimization outputs the optimal controller $\bar{\mathbf{u}}_n(t)$. We execute this controller on the robot for a number of times and compute the average state trajectory $\tilde{\mathbf{x}}_n(t)$ of the robot motion. We use the average of the multiple trajectories because we find that even with the same controller, we can get slightly different trajectories due to the varied initial condition, the noise from the sensor, from the actuator and from the environment. Together with the $n-1$ pairs of controllers and their associated average state trajectories from previous iterations, we can compute the discrepancy using the following expression. 
+
+\begin{equation}
+  E_{cali}=\frac{1}{n}\sum_{i=1}^{n}\int_{0}^{T+1}||\tilde{\mathbf{x}}_i(t)-\mathbf{x}_i(t)||_{\mathbf{W}}^2\mathrm{d}t
+  \label{eqn:calibrationObj}
+\end{equation}
+where $\mathbf{x}(t)$ and $\tilde{\mathbf{x}}(t)$ are state trajectories in the simulation and in the real world respectively. $\mathbf{W}$ is a diagonal matrix, which weights the relative importance of each joint. Due to the complex interplay between the simulation results and the simulation parameters, the optimization (\ref{eqn:calibration}) is nonlinear and nonconvex.  Our numerical experiments show that the objective function has many local minima, which can impose difficulties to gradient based optimization algorithms. Similar to controller optimization, we choose to use CMA for the optimization. In this case, each CMA sample is a candidate set of simulation parameters $\mathbf{\theta}$. To evaluate each CMA sample, we set the parameters into the physical simulator, simulate the robot motion $\mathbf{x}(t)$, and then compute the objective function eq. (\ref{eqn:calibrationObj}).
+
+In our work, we initialize the simulation parameters as follows. We set the physical properties of each body, including the mass, the moment of inertia and the COM according to the CAD files. We set the actuator gains based on the measurement from experiments. We leave all other parameters as default values in DART. Although these parameters are not accurate, they serve as a pretty good initial guess. During simulation calibration, we search the parameter space within a bounded range centered at the initial guess. In addition, we also employ two simplifications to speed up the optimization. First, we narrow down the simulation parameters to include only the actuator gains of each servo and the COM of each body. Since each task is to achieve a specific final pose while keeping balance, we believe that the actuator gains and the COM's are the two most important simulation parameters. Accurate actuator gains determines whether the robot can reach and hold the final pose, and correct COM's play an important role in balance control. This manual feature selection drastically reduce the search space of the optimization. Second, we zero out most of the diagonal entries of $\mathbf{W}$ in eq. (\ref{eqn:calibrationObj}) except for the rows corresponding to the global orientation. More specifically, we simply measure the discrepancy based solely on $\alpha$, the angle between the up direction between in the local frame of the robot's torso and in the global frame $(0,0,1)$.
+
+\begin{equation}
+  E_{cali}=\frac{1}{n}\sum_{i=1}^{n}\int_{0}^{T+1}(\tilde{\alpha}_i(t)-\alpha_i(t))^2\mathrm{d}t
+  \label{eqn:calibrationObj1}
+\end{equation}
+
+The objective function eq. (\ref{eqn:calibrationObj1}) captures the most important features that characterize the success or failure of our tasks (see eq.(\ref{eqn:controllerObj})), and eliminates the potentially tedious manual tuning of the weight matrix $\mathbf{W}$.
+
+
+
+
+
 \section{Results}
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\textwidth]{figures/lean2Stand}
+  \includegraphics[width=0.7\textwidth]{figures/lean2Stand}
   \caption{The results of the lean-to-stand task in the simulation and on the real robot.}
+  \label{fig:lean2Stand}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/sit2Stand}
+  \caption{The results of the sit-to-stand task in the simulation and on the real robot.}
   \label{fig:lean2Stand}
 \end{figure}
 
