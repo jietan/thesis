@@ -17,7 +17,7 @@ We evaluate our system in three locomotion tasks, rising from a leaning, sitting
   \label{fig:controllerTransferOverview}
 \end{figure}
 
-We have designed a system that can automatically design locomotion controllers for robots (Figure~\ref{fig:controllerTransferOverview}). Given the specification of the robot, including its body shape, the physical properties of each body, and the types of joints, we build a physical simulation using Dynamic Animation and Robotics Toolkit (DART) \cite{dart:2012}, an open source articulated rigid body simulator. In addition, we also take into consideration the torque limits, servo gains, noise and latency, which are not modeled in DART. The controller optimization subsystem runs thousands of simulations to search for the optimal controller to minimize the task-related objective function. We then test this optimal controller on the robot. If the robot successfully completes the task, a working robotic controller is found and our algorithm terminates. Otherwise, we record the robot performance data and feed it into the simulation calibration subsystem. Simulation calibration runs another optimization, which searches for the optimal simulation parameters to minimize the discrepancy between the performance data from the simulation and that from the robot experiments. The loop of controller optimization and simulation calibration is performed iteratively until the controller works successfully on the real robot. In the next three sections, we will delve into the details of these main components of our system, physical simulation, controller optimization and system calibration.
+We have designed a system that can automatically design locomotion controllers for robots (Figure~\ref{fig:controllerTransferOverview}). Given the specification of the robot, including its body shape, the physical properties of each body, and the types of joints, we build a physical simulation using Dynamic Animation and Robotics Toolkit (DART) \cite{dart:2012}, an open source articulated rigid body simulator. In addition, we also take into consideration the torque limits, servo gains, noise and latency, which are not modeled in DART. The controller optimization subsystem runs thousands of simulations to search for the optimal controller to maximize the task-related fitness function. We then test this optimal controller on the robot. If the robot successfully completes the task, a working robotic controller is found and our algorithm terminates. Otherwise, we record the robot performance data and feed it into the simulation calibration subsystem. Simulation calibration runs another optimization, which searches for the optimal simulation parameters to minimize the discrepancy between the performance data from the simulation and that from the robot experiments. The loop of controller optimization and simulation calibration is performed iteratively until the controller works successfully on the real robot. In the next three sections, we will delve into the details of these main components of our system, physical simulation, controller optimization and system calibration.
 
 \section{Physical Simulation}
 
@@ -112,7 +112,7 @@ Given the physical simulation, we can design controllers to enable the robot ach
 
 We first formulate a trajectory optimization problem for each task.
 \begin{align}
- \label{eqn:obj}&\min_{\bar{\mathbf{q}}(t)} E_{ctrl}(\mathbf{x}(t))\\
+ \label{eqn:obj}&\max_{\bar{\mathbf{q}}(t)} E_{ctrl}(\mathbf{x}(t))\\
 \nonumber  \mathrm{subject\;} &\mathrm{to} \\
 \label{eqn:dyn1} & \mathbf{M}(\mathbf{x})\mathbf{\ddot{x}}+\mathbf{C}(\mathbf{x},\mathbf{\dot{x}}) =\tau + \mathbf{Jf}\\
 \label{eqn:dyn2} &\tau =
@@ -127,15 +127,15 @@ We first formulate a trajectory optimization problem for each task.
 \label{eqn:boundary2}&\bar{\mathbf{q}}(t) = \mathbf{q}_T, \text{if } t \geq T
 \end{align}
 
-This optimization searches for a trajectory of desired joint configuration $\bar{\mathbf{q}}(t)$ that minimizes a balance related objective function (eq.(\ref{eqn:obj})), and subject to physical constraints (eq.(\ref{eqn:dyn1}) and (\ref{eqn:dyn2})) and boundary conditions (eq.(\ref{eqn:boundary1}) and (\ref{eqn:boundary2})). $\mathbf{x}_0$ is the initial condition, and $\mathbf{q}_T$ is the final pose (Figure \ref{fig:task}), both of which are provided by the user. Note that although we can specify the global translation $\mathbf{p}_0$, rotation $\mathbf{r}_0$ and joint angles $\mathbf{q}_0$ in the initial condition, we can only specify the desired joint angles for the final state because the global translation and rotation are determined by the physical simulation.
+This optimization searches for a trajectory of desired joint configuration $\bar{\mathbf{q}}(t)$ that maximize a balance related fitness function (eq.(\ref{eqn:obj})), and subject to physical constraints (eq.(\ref{eqn:dyn1}) and (\ref{eqn:dyn2})) and boundary conditions (eq.(\ref{eqn:boundary1}) and (\ref{eqn:boundary2})). $\mathbf{x}_0$ is the initial condition, and $\mathbf{q}_T$ is the final pose (Figure \ref{fig:task}), both of which are provided by the user. Note that although we can specify the global translation $\mathbf{p}_0$, rotation $\mathbf{r}_0$ and joint angles $\mathbf{q}_0$ in the initial condition, we can only specify the desired joint angles for the final state because the global translation and rotation are determined by the physical simulation.
 
-With a reasonably chosen actuator gains, the robot can alway achieve the final pose. In this case, the criterion of success for all the tasks is whether the robot remain upright at the end of its motion. We use the following objective function to encapsulate motions that can maintain an upright orientation.
+With a reasonably chosen actuator gains, the robot can alway achieve the final pose. In this case, the criterion of success for all the tasks is whether the robot remain upright at the end of its motion. We use the following fitness function to encapsulate motions that can maintain an upright orientation.
 
 \begin{equation}
-  E_{ctrl}(\mathbf{q}(t))=\int_0^{T+1} -\frac{1}{\alpha(t)+\epsilon}\mathrm{d}t
+  E_{ctrl}(\mathbf{q}(t))=\int_0^{T+1} \frac{1}{\alpha(t)+\epsilon}\mathrm{d}t
   \label{eqn:controllerObj}
 \end{equation}
-where $\alpha(t)$ is the angle between the up direction between in the local frame of the robot's root and in the global frame $(0,0,1)$. It measures whether the robot falls out of balance. $\epsilon$ is a small positive number to prevent the denominator being zero. We choose $\epsilon=0.1$ in all our tasks. The upper limit of the integration is $T+1$, where $T$ is the duration of the entire rising motion. The extra one second is to wait the robot to settle down. We use the time horizon $T+1$ because it is still possible that the robot can fall during the settling down phase and our objective function needs to penalize this situation.
+where $\alpha(t)$ is the angle between the up direction between in the local frame of the robot's root and in the global frame $(0,0,1)$. It measures whether the robot falls out of balance. $\epsilon$ is a small positive number to prevent the denominator being zero. We choose $\epsilon=0.1$ in all our tasks. The upper limit of the integration is $T+1$, where $T$ is the duration of the entire rising motion. The extra one second is to wait the robot to settle down. We use the time horizon $T+1$ because it is still possible that the robot can fall during the settling down phase and our fitness function needs to penalize this situation.
 
 There are two main difficulties to solve the above optimization directly. First, the number of variables is large. Since our robot has 16 degrees of freedom and a rising motion can often take more than two seconds, the above space-time optimization problem can have more than 1000 variables. To solve the this problem, we use keyframes $\bar{\mathbf{q}}_1, \bar{\mathbf{q}}_2, ..., \bar{\mathbf{q}}_n$ to represent the trajectories of the desired poses $\bar{\mathbf{q}}(t)$. In between the keyframes, we linearly interpolated the poses from two adjacent keyframes. With this simplification, the \emph{control parameters} that we need to optimize consist a few keyframes and the time interval between two adjacent keyframes rather of a large number of poses for the entire trajectory. We further halve the search dimension by exploiting the symmetry of the motion. We find that all three tasks can be achieved with symmetric motions. Thus we constrain that the joint motions on the left bodies mirrors those of the right bodies. In addition, we hope that the controller can use agile lower-body motions to stand up instead of using the help from hands. For this reason, the freeze the joints at the shoulders and the elbows. This focus the controller to the motions of the lower body, which further reduces the size of the optimization problem.
 
@@ -146,13 +146,13 @@ The second difficulty is that during the motion, discrete contact events can hap
 Although the optimal controllers $\bar{\mathbf{u}}(t)$ can work effectively in the simulation, they may fail to achieve the tasks when used on the robot due to the Reality Gap. To cross this gap, we develop a simulation calibration subsystem, whose goal is to improve the simulation accuracy, which would significantly increase the chance that the controller can be successfully transfered to the real robot. In this subsystem, we formulate an optimization (eq.~(\ref{eqn:calibration})) that searches for the \emph{simulation parameters} $\mathbf{\theta}$ so that the \emph{discrepancy} $E_{cali}$ is minimized between the simulated results and the robot performance in the real environment.
 
 \begin{equation}
- \min_{\mathbf{\theta}} E_{ctrl}
+ \min_{\mathbf{\theta}} E_{cali}
 \label{eqn:calibration}
 \end{equation}
 
 Many parameters $\mathbf{\theta}$ need to be set before a physical simulation starts, for example, the mass, the moment of inertia, the center of mass of each body, the coefficient of restitution, the coefficient of Coulomb friction, the gains of the actuator and many more. Changing simulation parameters can drastically alter the results of physical simulations. The accuracy of a physical simulation highly depends on the accuracy of these parameter settings. Simulation parameters are often set based on the estimation from experience, the specification of the robot, and the measurement from experiments. In our experiments, we find that many of the parameters are inaccurate. For example, the total mass of the robot is less than 1.1kg according to the CAD file while our own measurement is around 1.5kg. The height of center of mass differs more than 1cm between CAD file and our measurement. This difference in parameters could be due to the manufacturing errors and the weight of cables, glues, nuts and bolts that were used in assembling the robot. Instead of fixing the simulation parameters, we decide to adjust them during simulation calibration in order to make the simulation more accurate.
 
-We improve the simulation accuracy by minimizing the discrepancy $E_{ctrl}$, which is defined as the difference between the state trajectories in simulations and those collected in real robot experiments. Recall that our entire algorithm is an iterative process. At the $n$th iteration, controller optimization outputs the optimal controller $\bar{\mathbf{u}}_n(t)$. We execute this controller on the robot for a number of times and compute the average state trajectory $\tilde{\mathbf{x}}_n(t)$ of the robot motion. We use the average of the multiple trajectories because we find that even with the same controller, we can get slightly different trajectories due to the varied initial condition, the noise from the sensor, from the actuator and from the environment. Together with the $n-1$ pairs of controllers and their associated average state trajectories from previous iterations, we can compute the discrepancy using the following expression. 
+We improve the simulation accuracy by minimizing the discrepancy $E_{cali}$, which is defined as the difference between the state trajectories in simulations and those collected in real robot experiments. Recall that our entire algorithm is an iterative process. At the $n$th iteration, controller optimization outputs the optimal controller $\bar{\mathbf{u}}_n(t)$. We execute this controller on the robot for a number of times and compute the average state trajectory $\tilde{\mathbf{x}}_n(t)$ of the robot motion. We use the average of the multiple trajectories because we find that even with the same controller, we can get slightly different trajectories due to the varied initial condition, the noise from the sensor, from the actuator and from the environment. Together with the $n-1$ pairs of controllers and their associated average state trajectories from previous iterations, we can compute the discrepancy using the following expression. 
 
 \begin{equation}
   E_{cali}=\frac{1}{n}\sum_{i=1}^{n}\int_{0}^{T+1}||\tilde{\mathbf{x}}_i(t)-\mathbf{x}_i(t)||_{\mathbf{W}}^2\mathrm{d}t
@@ -169,11 +169,59 @@ In our work, we initialize the simulation parameters as follows. We set the phys
 
 The objective function eq. (\ref{eqn:calibrationObj1}) captures the most important features that characterize the success or failure of our tasks (see eq.(\ref{eqn:controllerObj})), and eliminates the potentially tedious manual tuning of the weight matrix $\mathbf{W}$.
 
-
-
-
-
 \section{Results}
+In this section we present the results of our system. Please watch the accompanying video for the controlled motions for the robot in the simulation and in the real world. Our system was implemented in C++, and we used DART with our actuator model to simulate the physics of the robot and its surrounding environments. The simulator runs in real time on a laptop with 2.6GHz CPU and 16GB of memory. In controller optimization and simulation calibration, the CMA uses 32 samples per iteration and 50 iterations. We implemented a parallel version of CMA search that can distribute the computation across all four cores on the CPU. It takes less than 15 minutes to find the optimal solution in controller optimization or simulation calibration.
+
+To test our system on a robot, we choose a humanoid robot, BIOLOID GP, as our robotic test platform. BIOLOID GP consists of 18 degrees of freedom, powered by AX-12/AX-18 servos. The communication between our computer and the robot is through the serial port. To control the robot, a host program on the computer writes the desired pose $\bar{\mathbf{q}}$ to the serial portthat is connected to the robot. A seperate program on the robot listens to the port and sends the desired joint angle to the corresponding actuator. At the same time, the robot performance data $\tilde{\mathbf{x}}$ that will be used in simulation calibration is measured and sent back to the computer. We use onboard rotary encoders to measure joint angles and VICON motion capture system to measure the global position and orientation of the robot's torso.
+
+\section{Actuator Gain Identification}
+We first identify the actuator gains $k_p$, $k_d$ and $k_c$. See eq.() for the derivation of the these terms. In physical simulation, we need to set the values of the actuator gains. Unfortunately, the specification of the servos does not provide the necessary information to compute the gains. For this reason, we design a robot experiment to identify these gains. Wefirst lay the robot down and clamp it on a table except for the left foot. We then send a periodic control signal to the servo at the heel joint (blue curve in Figure \ref{fig:actuatorId} Left). The desired joint angle stays at the maximum value for 0.67 second and changes to the minimum value for another 0.67 second and repeat. We record the trajectory of the actual joint angle through the experiment (green curve in Figure \ref{fig:actuatorId} Right). We manually segment out portions of these two curves where the desired angle $\bar{q}$ stays at the same value and where the power level is approximately linear to the error $\Delta q = \bar{q} - q$ between the desired angle and the actual angle (the union of intervals A, B, C and D in Figure \ref{fig:actuatorMap}). The black crosses ``+'' in Figure~\ref{fig:actuatorId} Right shows this error over time $\Delta q(t)$.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/actuatorId}
+  \caption{Actuator Identification. Left: the time series of input desired joint angle and the measured joint angle for an AX-18 servo. Right: the time series of actual error of joint angle and the predicted error using the identified actuator gains.  }
+  \label{fig:actuatorId}
+\end{figure}
+
+Given $\Delta q(t)$, we can apply regression to estimate the actuator gains. From eq. (\ref{}), we have
+\begin{equation}
+\ddot{\Delta q}=I^{-1}(k_p\Delta q + k_d\dot{\Delta q} + k_c\sgn{\dot{\Delta q}})
+\end{equation}
+where $I$ is the moment of inertia of the foot with respect to the rotating axis. The above equation is derived from the relation between angular acceleration and the torque $\tau = I\ddot{q}+\dot{I}\dot{q}$ and the fact that $\dot{I}\dot{q}=0$ because the foot is a rigid body that rotates along a fixed axis. Ideally, $\ddot{\Delta q}$ and $\dot{\Delta q}$ can be computed using finite difference. However, the measurement of $\Delta q(t)$ is too noisy and finite difference would greatly magnify the noise. To solve this problem, we first smooth $\Delta q(t)$ by performing a 4th-order polynomial regression:
+\begin{equation}
+  \min_{a,b,c,d,e}\int ||\Delta q(t)-(at^4+bt^3+ct^2+dt+e)||^2\mathrm{d}t
+  \label{eqn:Deltaq}
+\end{equation}
+where $a,b,c,d,e$ are the polynomial coefficients. This regression gives us a smooth analytical expression of $\Delta q(t)$. We then compute $\ddot{\Delta q}$ and $\dot{\Delta q}$ by differentiate this polynomial analytically:
+\begin{align}
+\label{eqn:Deltaqdot}  \dot{\Delta q}(t)&=4at^3+3bt^2+2ct+d\\
+\label{eqn:Deltaqddot}  \ddot{\Delta q}(t)&=12at^2+6bt+2c
+\end{align}
+
+Combining eq. (\ref{eqn:Deltaq}), (\ref{eqn:Deltaqdot}) and (\ref{eqn:Deltaqddot}), we can perform another regression to compute the actuator gains.
+\begin{equation}
+\min_{k_p, k_d, k_c}\int||\ddot{\Delta q}(t)-I^{-1}(k_p\Delta q(t) + k_d\dot{\Delta q}(t) + k_c\sgn{\dot{\Delta q}(t)})||^2\mathrm{d}t
+\end{equation}
+
+Our experiments and computation show that the actuator gains are $k_p=-9.272(N\cdot m/rad)$, $k_d=-0.3069(N\cdot m\cdot s/rad)$, and $k_c=-0.03(N\cdot m)$. To verify the correctness of the values, we plug them into the simulator and repeat the same experiment in the simulation. The red curve in Figure \ref{fig:actuatorId} Right is the error over time predicted in our simulation, which agrees well with the data that are collected from the robot experiment. After we identify the actuator gains, we test our entire system using the following three locomotion tasks.
+
+\section{Rising from a Sitting Position}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/sit2Stand}
+  \caption{The results of the sit-to-stand task in the simulation and on the real robot.}
+  \label{fig:sit2Stand}
+\end{figure}
+
+The first task that we have tested is to rise from a sitting pose to a standing pose (Figure \ref{fig:sit2Stand}). The initial and final poses $q_0$ and $q_T$ shown in the leftmost and rightmost images in Figure \ref{fig:sit2Stand}. We parameterize the controller as three keyframes $q_0$, $q_1$ and $q_T$. In addition to $q_0$ and $q_T$ specified by the user, the controller optimization subsystem needs to search for the keyframe $q_1$, the time intervals $t_1$ and $t_2$ between three keyframes. Note that we only change the joint angles of the hips and the knees and keep all other joints motionless throughout the entire motion.
+
+We purposefully choose the initial pose that the legs of the robot extends forward and the projection of the COM of the robot in the vertical direction falls on the seat, which is far behind the contact points of the feet. If the robot simply extends the hips and the knees to stand up, it will fall backwards. Despite this challenging setup, our system successfully finds a controller that enables the robot to stand up in the simulation. Figure \ref{fig:sit2Stand} shows that the robot first builds up a forward momentum by quickly leaning its upper body to the front. It then start to extend the hips and the knee at the right time when the COM is approaching the boundary of the contact polygon spanned by the feet. This natural sequence of motion is found automatically by the controller optimization subsystem.
+
+When applying this controller to the real robot, we are surprised to find that it works directly, without the need of simulation calibration. The robot stands up from a chair in the same way as its simulated counterpart does in the virtual world. It shows that the Reality Gap is not always the problem. In some tasks, the stability region of a controller is so large that can make the discrepancy between the virtual and the real world less critical.
+
+\section{Rising from a Leaning Position}
 
 \begin{figure}[!t]
   \centering
@@ -182,12 +230,29 @@ The objective function eq. (\ref{eqn:calibrationObj1}) captures the most importa
   \label{fig:lean2Stand}
 \end{figure}
 
+In this task, the robot need to rise from leaning on the wall (the leftmost image in Figure \ref{fig:lean2Stand}) to a standing position (the rightmost image in Figure \ref{fig:lean2Stand}). In the initial configuration, the hip joints are bent and they are straightened out in the final configuation while all other joints do not move. The initial and the final poses are the only two keyframes for this task.
+
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\textwidth]{figures/sit2Stand}
-  \caption{The results of the sit-to-stand task in the simulation and on the real robot.}
-  \label{fig:lean2Stand}
+  \includegraphics[width=0.7\textwidth]{figures/simRobotCompare}
+  \caption{Comparisons of the robot's global orientation over time in the simulation (before/after calibration) and in the real environment.}
+  \label{fig:simRobotCompare}
 \end{figure}
+
+
+The goal of controller optimization is to find an appropriate time interval between these two keyframes. If the time inteval is too long, the robot moves slowly, and cannot accumulate enough momentum to rise up. If this time inteval is too short, the robot move abruptly, which will cause the upper body to bounce off the wall too quickly and fall forward. Without simulation calibration, the optimization cannot find a working controller for this task. The robot cannot rise up when $T\leq 0.10s$ and overshoots when $T > 0.10s$. According to the objective function value, the optimal controller, which still fails the task, uses $T=0.11s$ to move from the initial to the final pose. Using this controller, the robot rises up too quickly and falls forward in the simulation. We apply this controller to the real robot. The real performance of controller differs drastically from that in the simulation. Rather than falling forward, the robot in the real world cannot rise up. The red and blue curves in Figure \ref{fig:simRobotCompare} show the discrepancy of the trajectory of robot's global orientation in the simulation and in the real world. After one iteration of simulation calibration, the discrepancy is greatly reduced (Figure \ref{fig:simRobotCompare} green curve). We optimize the controller again in the calibrated simulator. This time, the optimal controller works both in the simulated and real environment.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/fitnessLandscape}
+  \caption{Comparisons of the fitness functions as more and more iterations of simulation calibration are performed.}
+  \label{fig:fitnessLandscape}
+\end{figure}
+
+Our system successfully crosses the Reality Gap using only one iteration of simulation calibration. To better understand how the Reality Gap is gradually narrowed by simulation calibration over multiple iterations, we perform an additional evaluation. Figure \ref{fig:fitnessLandscape} shows the fitness function by varying the control parameter $T$ in the range of $[0, 0.11]$. The blue curve is the fitness function sampled by testing different controllers on the real robot. This serves as the ground truth. The fitness function stays at a high value when $T\in[0, 0.1]$, which means that the real robot can successfully rise if the controller uses less than 0.1s to change the pose from the initial to the final configuration. In contrast, without simulation calibration, the fitness function (lowest black curve) stays at a low value for the entire control space. In other words, no controller exists that can make the robot stand up in the simulation. The gap between the blue and the black curves is analogue to the Reality Gap. One iteration of system calibration brings the fitness function in the simulation towards the ground truth. As more iterations are performed, the fitness function in the simulation (brown and red curves) gradually approaches the ground truth, and the Reality Gap is narrowed in this process. Note that a large discrepancy still exists in the region of the parameter space where $T<0.02s$. This is probably caused by two reasons. First, torque limit is not considered in simulation calibration. In the region $T<0.02s$, the torque output of the servo is at its limit. Although we set a constant torque limit in the simulation according to the specification of the motor, it is different from the true value because the torque limit is changing with spinning speed of the motor. Second, the controllers and the data (the red circles in Figure \ref{fig:fitnessLandscape}) that we use in simulation calibration concentrate on the right half of the parameter space. This unbalanced dataset makes the calibration subsystem overfit the data. Thus it cannot generalize to a region where the data is scarce ($T<0.02$). However, this overfitting can be beneficial in many applications because the computational resource is focused at the important regions near the successful controllers.
+
+
+\section{Rising from a Kneeling Position}
 
 \begin{figure}[!t]
   \centering
@@ -197,3 +262,7 @@ The objective function eq. (\ref{eqn:calibrationObj1}) captures the most importa
 \end{figure}
 
 \section{Discussion}
+Discussion about the algorithm is not find the truth and why the algorithm is useful 
+Generalizability to different tasks and to different initial configuration.
+conclusion 
+
