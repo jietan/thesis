@@ -2,8 +2,8 @@
 
 \section{Motivation}
 
-The oceans, lakes and rivers of our planet contain a wide variety of
-creatures that use swimming as their primary form of locomotion.  There are
+We live on a planet that is covered mostly by water, in which a wide variety of
+creatures use swimming as their primary form of locomotion.  There are
 an astonishing variety of body shapes and patterns of motion that are used
 by swimmers across the animal kingdom.  Some of the many creature swimming
 patterns from nature include using thrust from a tail, moving an elongated
@@ -40,7 +40,7 @@ animals is astonishingly diverse and results in fundamentally
 different locomotion mechanisms. Designing control strategies based on
 ad-hoc observation or careful tuning of parameters would be extraordinarily difficult to generalize to the vast biodiversity found in nature.
 
-This paper describes a complete system for controlling a wide variety of
+This chapter describes a complete system for controlling a wide variety of
 aquatic animals in a simulated fluid environment. Our goal is a system
 that balances between physical realism and generality. Given an aquatic
 animal that is represented by an articulated rigid body system, our system
@@ -70,7 +70,7 @@ creatures. In addition, we compare the swimming motion in a Navier-Stokes
 fluid with motion in a simplified fluid. Our results show that these
 motions can differ dramatically depending on which fluid model is used.
 
-\section{Coupling Articulated Figures with Fluids}
+\section{Swimming Simulation}
 
 We simulate fluids by solving the Navier-Stokes equations on a MAC grid
 and we simulate the articulated rigid body using generalized coordinates.
@@ -150,7 +150,7 @@ The aquatic creatures in this work require high gain PD servos to track the desi
 \tau^n=-k_p(q^{n+1}-\bar{q}^{n+1})-k_d\dot{q}^{n+1}
 \end{equation}
 
-Equation (\ref{eq:pd3}) can be linearized at $q^n$ and $\dot{q}^n$ as:
+eq. (\ref{eq:pd3}) can be linearized at $q^n$ and $\dot{q}^n$ as:
 \begin{displaymath}
 \tau^n=-k_p(q^n+\Delta t\dot{q}^n-\bar{q}^{n+1})-k_d(\dot{q}^n+\Delta t\ddot{q}^n)
 \end{displaymath}
@@ -302,7 +302,7 @@ solving the pressure field, we project the velocity field to make it divergence 
 using (\ref{eq:projection}) and update the articulated rigid body by
 considering the pressure forces.
 
-\section{Optimizaton of Swimming Gaits}
+\section{Swimming Gait Optimization}
 \label{sec:optimization}
 
 Section 3 describes the two-way interaction between fluids and an articulated rigid body system. In particular, Section 3.2 describes how we move the body parts using torques and how we compute the torques for a given reference gait. In this section, we describe an algorithm to automatically design optimal controllers for an active articulated
@@ -504,8 +504,7 @@ the second and third cases indicate the articulated figure is swimming
 away from the path (Figure~\ref{fig:pathCases}b and \ref{fig:pathCases}c)
 and we choose ``pitch up'' or ``pitch down'' accordingly.
 
-\section{Implementation Details}
-
+\section{Results}
 
 \begin{figure}[!b]
 \centering
@@ -566,10 +565,6 @@ outside the domain is free to flow in and vice versa. 3) Since the density
 of most aquatic creatures is similar to that of the fluid, we ignore the force of gravity in our simulator.
 
 
-
-
-\section{Results}
-
 \begin{figure*}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/manta.eps}
@@ -591,8 +586,7 @@ of most aquatic creatures is similar to that of the fluid, we ignore the force o
 \label{fig:turtle}
 \end{figure*}
 
-In this section we describe the results of our swimming optimization
-method.  Please see the accompanying video to observe the swimming
+We describe the results of our swimming optimization method.  Please see the video(http://www.cc.gatech.edu/~jtan34/project/videos/articulatedSwimmingCreatures.mp4) to observe the swimming
 animations.  To visualize the fluid flow, we draw \emph{particles traces},
 which show the trajectory of massless particles inside the fluid in a
 short period of time (15 frames). We modulate the transparency of the
@@ -600,8 +594,6 @@ particle traces in 3D examples according to the magnitude of the vorticity
 in order to focus attention on the visually interesting regions of the
 flow.  In 2D examples, we colored the traces to indicate the directions of
 the vortices.
-
-
 
 \begin{figure*}[ht]
 \centering
@@ -724,13 +716,21 @@ relative to the mass of the fish. Users can also change the weights in the objec
 In our examples, we set all these parameters by intuition without much tuning. The weights
 are reported at the end of each paragraph that introduces the different objectives in Section 4.2.
 
-\section{Limitations}
+\section{Discussion}
+
+We have demonstrated that our approach creates natural swimming behavior for
+a wide variety of animal bodies.  For short-bodied fish and eels, our
+results show vortex trails that are in agreement with laboratory
+measurements and other published simulation results.  For the other
+creatures, our optimized motions have the same overall appearance of the
+real-world animals, although lab data is not available.  Our articulated
+body representation of creature anatomy is quite general, even allowing us to
+animate forms such as the manta ray that are not usually thought of as
+articulated figures.
 
 Although we have successfully applied our method to various aquatic
 creatures with disparate body shapes and joint configurations, our approach does
-have limitations.
-
-Our two-way coupling method needs to voxelize the articulated rigid body,
+have limitations. Our two-way coupling method needs to voxelize the articulated rigid body,
 and the accuracy for representing the articulated figure depends on the grid
 resolution. Thin features cannot be captured by the fluid simulator (Figure~\ref{fig:grid}). We believe that incorporating adaptive grids
 \cite{Losasso04Octree} or unstructured meshes
@@ -753,19 +753,6 @@ optimization variables and more computational resources to discover a
 swimming gait.
 
 Our simulated swimmers seem to use more energy than the real creatures do because the simulated water is more viscous than real water. Even though we use the inviscous Navier-Stokes equation (Euler equation) to simulate the fluid, there is numerical viscosity. We chose to use relatively coarse grid, and thus incur large numerical viscosity, to keep the computational time tractable because CMA optimization need to simulate the two-way coupling thousands of times. In addition, while the real aquatic creatures take advantage of their streamline shaped body to reduce the fluid drag, the simulated creatures are voxelized and the resultant stair-step shaped body is not particularly efficient inside the fluid.
-
-
-\section{Conclusion}
-
-We have demonstrated that our approach creates natural swimming behavior for
-a wide variety of animal bodies.  For short-bodied fish and eels, our
-results show vortex trails that are in agreement with laboratory
-measurements and other published simulation results.  For the other
-creatures, our optimized motions have the same overall appearance of the
-real-world animals, although lab data is not available.  Our articulated
-body representation of creature anatomy is quite general, even allowing us to
-animate forms such as the manta ray that are not usually thought of as
-articulated figures.
 
 There are a number of interesting avenues for future work.  There are many
 ways this approach could be expanded to give more control to animators,

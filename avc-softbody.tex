@@ -2,16 +2,17 @@
 
 \section{Motivation}
 
-In this paper we present a method of animating soft body characters, that
+A large variety of soft body animals live on our planet. Some examples of
+such creatures are slugs, starfish, earthworms, octopus, and jellyfish. These
+animals move in interesting ways due to their flexible body shapes and lack of
+skeleton support. In this chapter we present a method of animating soft body characters, that
 is, characters that do not have a skeleton.  In particular, our emphasis
 is on creating animations of soft body creature locomotion, including
-crawling, walking, rolling and jumping.  There are a wide variety of
-animals in nature that have no skeleton whatsoever.  Some examples of
-such creatures are slugs, starfish, earthworms, octopus, and jellyfish.
-In addition, many hand-drawn animated characters move in such a flexible
+crawling, walking, rolling and jumping.  
+Many hand-drawn animated characters move in such a flexible
 manner that they seem to be boneless.  The animation principle of
 \emph{squash-and-stretch} can be seen in its purest form with soft body
-characters.  Finally, as exemplified by our own tongues, even animals with
+characters. In addition, as exemplified by our own tongues, even animals with
 skeletons can have body parts that move without the help of
 bones.  Our research is driven by the intellectual challenge of
 simulating the locomotion of such soft body creatures, without resorting
@@ -103,26 +104,11 @@ creature body forms that we can simulate using computers.  Many animals in
 nature move without the use of skeletons, so is it possible to create a
 computer simulation that mirrors this fascinating phenomenon?
 
-The main contributions of our paper are:
-
-\begin{enumerate}
-\item A new representation of soft body characters that uses muscle fibers
-to control a volume-preserving finite element mesh.  This representation
-matches the muscle fibers and volume preserving tissue found in real soft
-body creatures.
-\item A framework that provides control of the motion of a
-soft body character through high-level goals.
-\item A new approach for solving the linear complementarity problem with a
-quadratic objective function, which enables our controller to utilize a wide
-variety of contact cases, including static, sliding, rolling and breaking
-contact.
-\end{enumerate}
-
 \section{System Overview}
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=3.3in]{figures/overview3}
+  \includegraphics[width=5in]{figures/overview3}
   \caption{Overview of our system.}
   \label{fig:overview}
 \end{figure}
@@ -254,7 +240,7 @@ defined as
 w_{ij}=\frac{h(d_{ij})}{\sum_{k\in group(j)}h(d_{ik})}
 \label{eq:weight}
 \end{equation}
-The denominator in Equation \ref{eq:weight} normalizes the influence of
+The denominator in eq. (\ref{eq:weight}) normalizes the influence of
 muscle fibers within the same group. This normalization allows
 different muscle groups, typically with different functionalities,
 to exert their influence on the soft body simultaneously.
@@ -277,7 +263,7 @@ which is also the dimension of our control variables.
 \subsection{Numerical Integration}
 To ensure the stability of our system with large time steps, we use an
 implicit integrator to solve the dynamic equations. After substituting
-each force terms into Equation \ref{eq:dynamics}, we arrive at the following
+each force terms into eq. (\ref{eq:dynamics}), we arrive at the following
 dynamic equation:
 \begin{equation}
 \vc{M\ddot{p}}=\vc{f}_x-\vc{K}(\vc{p} -\vc{R}\vc{x}) -
@@ -298,7 +284,7 @@ t$ is the time step. We define $\widetilde{\vc{M}}=\vc{M}+\Delta t\vc{C}+\Delta 
 single out the contact force as $\vc{f}_c$, which is part of
 $\vc{f}_x$ and will be discussed in the next
 section. $\widetilde{\vc{f}}^n$ accounts for the remaining terms on
-the right hand side of Equation \ref{eq:integration}.
+the right hand side of eq. (\ref{eq:integration}).
 
 
 \section{Locomotion Control}
@@ -315,7 +301,7 @@ We express the objective function in the optimization as a convex
 quadratic function of the next state of the soft body: $G(\vc{p}^{n+1})$.
 This general function form is sufficient to encode a wide variety of
 control goals while retaining convexity of the optimization. Using
-Equation \ref{eq:integration} and \ref{eq:nextState}, the optimization
+eq. (\ref{eq:integration}) and (\ref{eq:nextState}), the optimization
 minimizes a reparameterized objective function which implicitly enforces
 the equations of motion:
 \begin{equation}
@@ -357,7 +343,7 @@ new iterative solver to QPCC for contact modeling in Section
 \label{sec:controller}
 We develop three types of low-level control mechanisms by formulating different
 objective functions $G(\vc{l}_d, \vc{f}_\perp, \vc{f}_\parallel)$ in
-Equation \ref{eqn:optimization}. In Section \ref{sec:results}, we
+eq. (\ref{eqn:optimization}). In Section \ref{sec:results}, we
 demonstrate that these three basic mechanisms can be combined to
 design fundamentally different locomotion controllers.
 
@@ -423,7 +409,7 @@ is essential for producing a walking gait. The following objective function mini
 G(\vc{l}_d, \vc{f}_\perp, \vc{f}_\parallel) = \| f(\vc{p}^{n+1}) - \bar{\vc{p}} \|^2
 \label{eqn:positionTracking}
 \end{equation}
-where $f$ is a function that selects a node from $\vc{p}^{n+1}$. If we redefine $f$ as a function that computes the COM, Equation \ref{eqn:positionTracking} can be used to track the COM. Likewise, we can track the relative position of two body points by replacing $f(\vc{p}^{n+1})$ with $f_1(\vc{p}^{n+1}) - f_2(\vc{p}^{n+1})$, where $f_1$ selects the first node and $f_2$ selects the second node from $\vc{p}^{n+1}$. We can also use a similar objective function to track velocity.
+where $f$ is a function that selects a node from $\vc{p}^{n+1}$. If we redefine $f$ as a function that computes the COM, eq. (\ref{eqn:positionTracking}) can be used to track the COM. Likewise, we can track the relative position of two body points by replacing $f(\vc{p}^{n+1})$ with $f_1(\vc{p}^{n+1}) - f_2(\vc{p}^{n+1})$, where $f_1$ selects the first node and $f_2$ selects the second node from $\vc{p}^{n+1}$. We can also use a similar objective function to track velocity.
 \begin{equation}
 G(\vc{l}_d, \vc{f}_\perp, \vc{f}_\parallel) = \| f(\dot{\vc{p}}^{n+1}) - \bar{\dot{\vc{p}}} \|^2
 \label{eqn:velocityTracking}
@@ -446,7 +432,7 @@ variables for each contact point (one for $f_\perp$, eight for
 $\vc{f}_\parallel$ and one for $\lambda$). Thus, a few contact points
 alone will render the exhaustive method computational impractical.
 
-We propose a more efficient way to solve a QPCC for contact problems, such as Equation \ref{eqn:optimization}. Our iterative QPCC solver starts with an initial guess, which is a set of linear constraints that are compatible with the complementarity conditions. For the initial guess, we manually set some elements of $\vc{f}_\perp$, $\vc{f}_\parallel$, and $\lambda$ to be zero and their complementary pairs to be nonnegative, in a way that the state of those variables has a physical meaning. For example, if we assume all contact points are static, we arrive at the following convex QP:
+We propose a more efficient way to solve a QPCC for contact problems, such as eq. (\ref{eqn:optimization}). Our iterative QPCC solver starts with an initial guess, which is a set of linear constraints that are compatible with the complementarity conditions. For the initial guess, we manually set some elements of $\vc{f}_\perp$, $\vc{f}_\parallel$, and $\lambda$ to be zero and their complementary pairs to be nonnegative, in a way that the state of those variables has a physical meaning. For example, if we assume all contact points are static, we arrive at the following convex QP:
 \begin{align}
 \min_{\vc{l}_d,\vc{f}_\perp,\vc{f}_\parallel,\lambda} G&(\vc{l}_d,\vc{f}_\perp,\vc{f}_\parallel) & \label{eqn:initialGuess} \\
 \mathrm{subject\;} &\mathrm{to} & \nonumber\\
@@ -478,7 +464,7 @@ shows a two dimensional example.
 
 \begin{figure}[!b]
   \centering
-  \includegraphics[width=3.3in]{figures/QPCC.eps}
+  \includegraphics[width=5in]{figures/QPCC.eps}
   \caption{A simple 2D QPCC example. The complementarity constraints are $0\leq x \perp x-y-2 \geq 0$. (a) The feasible region lies in two intersecting half-hyperplanes, shown as two black line segments. (b) With the initial guess of $x=0$ and $x-y-2\geq 0$, the minimizer, shown as an orange dot, is located at the boundary of the inequality constraint. (c) After pivoting the constraint, setting $x\geq 0$ and $x-y-2=0$, we find a better minimizer (global minimizer in this simple case).}
   \label{fig:QPCC}
 \end{figure}
@@ -488,13 +474,13 @@ improve the performance. Instead of arbitrarily selecting a candidate
 to pivot, we can group the complementarity constraints according to
 their physical meaning and pivot a whole group together. There are
 three different situations for each contact point: static, sliding and
-contact breakage. Pivoting constraints in Equation
-\ref{eqn:initialGuess1} indicates a switch between a static (or a
+contact breakage. Pivoting constraints in eq.
+(\ref{eqn:initialGuess1}) indicates a switch between a static (or a
 sliding) contact and contact breakage.  Pivoting constraints in
-Equation \ref{eqn:initialGuess2} and \ref{eqn:initialGuess3}
+eq. (\ref{eqn:initialGuess2}) and (\ref{eqn:initialGuess3})
 indicates a switch between static and sliding contact. For example, if
-$\vc{f}_{\perp}(i)=0$ is the result of solving the QP (Equation
-\ref{eqn:initialGuess}), it implies that breaking $i$th contact point
+$\vc{f}_{\perp}(i)=0$ is the result of solving the QP (eq.
+(\ref{eqn:initialGuess})), it implies that breaking $i$th contact point
 might lead to a better minimizer for the QPCC. The solver will pivot
 the corresponding constraints: $\vc{f}_{\perp}(i) \geq 0 \rightarrow
 \vc{f}_{\perp}(i) = 0$ and $(\vc{N}^T\dot{\vc{p}}^{n+1})(i) = 0
@@ -502,9 +488,8 @@ the corresponding constraints: $\vc{f}_{\perp}(i) \geq 0 \rightarrow
 be solved subsequently. Conversely, when a free point restores a static
 contact, we apply the opposite pivoting.
 
-
-If a friction cone condition (Equation \ref{eqn:initialGuess3}) for the
-$i$th contact point needs to be pivoted, this implies that the $i$th contact point is about to slide and switching it from static to sliding might lead to a better minimizer. The solver then changes the inequality constraint $(\mu \vc{f}_{\perp} - \vc{E}^T \vc{f}_{\parallel})(i)\geq 0$ to equality and changes the corresponding equality constraint $\lambda(i)=0$ to inequality. In addition, we need to pivot some constraints in Equation \ref{eqn:initialGuess2} to specify the direction of the sliding contact, which can be estimated using the static friction from the current minimizer. We project this static friction force to each of the tangential direction of the $i$th contact point $\vc{D}(i)$ and find the two directions (the $m$th and $n$th direction in $\vc{D}(i)$) that have the largest magnitude. The sliding force direction is estimated to be along the convex combination of $m$th and $n$th directions. We pivot the constraints in the following way,
+If a friction cone condition (eq. (\ref{eqn:initialGuess3})) for the
+$i$th contact point needs to be pivoted, this implies that the $i$th contact point is about to slide and switching it from static to sliding might lead to a better minimizer. The solver then changes the inequality constraint $(\mu \vc{f}_{\perp} - \vc{E}^T \vc{f}_{\parallel})(i)\geq 0$ to equality and changes the corresponding equality constraint $\lambda(i)=0$ to inequality. In addition, we need to pivot some constraints in eq. (\ref{eqn:initialGuess2}) to specify the direction of the sliding contact, which can be estimated using the static friction from the current minimizer. We project this static friction force to each of the tangential direction of the $i$th contact point $\vc{D}(i)$ and find the two directions (the $m$th and $n$th direction in $\vc{D}(i)$) that have the largest magnitude. The sliding force direction is estimated to be along the convex combination of $m$th and $n$th directions. We pivot the constraints in the following way,
 \begin{align}
 & \vc{f}_{\parallel}(i, m)\geq 0, \;\;\; (\vc{D}^T \dot{\vc{p}}^{n+1} + \vc{E} \lambda)(i, m) = 0 \nonumber \\
 & \vc{f}_{\parallel}(i, n)\geq 0, \;\;\; (\vc{D}^T \dot{\vc{p}}^{n+1} + \vc{E} \lambda)(i, n) = 0\nonumber \\
@@ -534,6 +519,29 @@ found by our solver is, in all the experiments, significantly closer to
 optimal than the one solved under the static contact assumption. We report the
 results of the experiments in Section \ref{sec:Evaluation}.
 
+\paragraph{Implementation.}
+Our solver requires a feasible initial guess. We can use the trivial solution under static contact assumption (eq. (\ref{eqn:initialGuess})) as an initial guess, or the solution from the previous QPCC when it is available (warm start). Occasionally, they might result in an infeasible QP. For those cases, we assume the same muscle activation as in last time step, remove the objective function and muscle length constraints from eq. (\ref{eqn:optimization}) and solve a pure LCP. The contact situation from the LCP solution is then used as the initial guess for the QPCC.
+
+We implement the QPCC solver using a graph expansion algorithm (See Appendix \ref{chapter:AppendixA} for details). Each
+QP with linear constraints is a node in the graph. We visit each node
+twice, starting from the initial guess as the root. In the first
+visit, we solve the QP, assign the objective value to the
+node, and store the set of candidates to be pivoted. After first
+visit, we push the node into a priority queue based on its objective
+function value. A node is visited the second time when it is at the
+top of the queue. In the second visit, we pivot the constraints from
+its candidate set. Each pivot generates a child node. We discard the
+child node if it already exists in the current graph. If the child
+node is new, we visit the node for the first time and push it into the
+queue. The second visit is completed when all the constraints in the
+candidate set are pivoted. We then pop the next node in the queue and
+repeat this process. The algorithm terminates when the priority queue
+is empty or the number of visited nodes exceeds a threshold. The final
+solution is the best minimizer found so far by the QPCC solver.
+
+\section{Results}
+
+\label{sec:results}
 \begin{figure*}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/HSwing.eps}
@@ -577,31 +585,8 @@ perturbation by regulating its momenta, widening its base and lowering its cente
 \label{fig:XWalk}
 \end{figure*}
 
-\paragraph{Implementation.}
-Our solver requires a feasible initial guess. We can use the trivial solution under static contact assumption (Equation \ref{eqn:initialGuess}) as an initial guess, or the solution from the previous QPCC when it is available (warm start). Occasionally, they might result in an infeasible QP. For those cases, we assume the same muscle activation as in last time step, remove the objective function and muscle length constraints from Equation \ref{eqn:optimization} and solve a pure LCP. The contact situation from the LCP solution is then used as the initial guess for the QPCC.
-
-We implement the QPCC solver using a graph expansion algorithm. Each
-QP with linear constraints is a node in the graph. We visit each node
-twice, starting from the initial guess as the root. In the first
-visit, we solve the QP, assign the objective value to the
-node, and store the set of candidates to be pivoted. After first
-visit, we push the node into a priority queue based on its objective
-function value. A node is visited the second time when it is at the
-top of the queue. In the second visit, we pivot the constraints from
-its candidate set. Each pivot generates a child node. We discard the
-child node if it already exists in the current graph. If the child
-node is new, we visit the node for the first time and push it into the
-queue. The second visit is completed when all the constraints in the
-candidate set are pivoted. We then pop the next node in the queue and
-repeat this process. The algorithm terminates when the priority queue
-is empty or the number of visited nodes exceeds a threshold. The final
-solution is the best minimizer found so far by the QPCC solver.
-
-\section{Results}
-\label{sec:results}
-
 In this section we describe the results of our soft body locomotion
-controllers. Please see the accompanying video to watch the locomotion
+controllers. Please see the video (http://dl.dropbox.com/u/36899427/softbodylocomotion.mp4) to watch the locomotion
 animations. Our system is implemented in C++, and we generated the
 tetrahedral mesh for FEM simulation using TETGEN \cite{Si:2006}. We
 used the GPU to create layered depth figures for collision detection,
@@ -746,7 +731,7 @@ a twist jump and the use of helical muscles
 (Figure~\ref{fig:muscles}b).  Before the ``T'' takes off, we set
 $\bar{\dot{H}}=(0, 600, 0)^T$ to make it twist its body.
 
-\paragraph{Rolling.} In the accompanying video, we also demonstrate
+\paragraph{Rolling.} In the video, we also demonstrate
 locomotion by rolling. We designed an O-shaped character with two
 loops of muscle fibers arranged as two concentric circles
 (Figure~\ref{fig:muscles}c). Each fiber consists of 20 independent segments, which allow
@@ -761,7 +746,7 @@ original symmetric rounded shape and the rolling stops after a while
 due to friction. In the second animation, we compare our result with
 the motion solved by a QP using the static contact assumption.  When we only
 allow static contact, the ``O'' never begins rolling because this
-motion requires the character to break contact, which is prohibited by the static contact assumption (Equation ~\ref{eqn:initialGuess1}).  The third sequence
+motion requires the character to break contact, which is prohibited by the static contact assumption (eq.~(\ref{eqn:initialGuess1})).  The third sequence
 shows that the ``O'' starts to roll right, deaccelerates, stops
 and rolls to the left by applying a time varying $\bar{\dot{H}}$ to
 the controller.
@@ -782,7 +767,7 @@ force to $\vc{f}_c=\vc{N}f_\perp+\vc{DS}\vc{f}_\parallel$, where
 $\vc{S}$ is a diagonal scaling matrix that modulates the frictional
 force according to the direction of motion. We set the friction
 coefficient in the backward direction to be 10 times larger than all
-other directions. In the accompanying video, we demonstrate the
+other directions. In the video, we demonstrate the
 earthworm style of crawling. The whole body of the character lies flat
 on the ground at all times and it moves forward by repeatedly
 shortening and elongating its body. The contact strategy of this form
@@ -807,16 +792,29 @@ motion of an X-shaped quadruped. We instrument four longitudinal
 muscles and two radial muscles for each limb of the ``X''
 (Figure~\ref{fig:muscles}d) and specify the trajectories for all of
 its four feet. We apply the position and velocity tracking controller, to track this the walking motion.
-The first sequence in the accompanying video shows a careful and slow gait that moves only one
+The first sequence in the video shows a careful and slow gait that moves only one
 foot at a time. The second walking sequence shows a faster walking
 gait by simultaneously lifting and moving two feet at a time. The
 breaking of contact when a foot lifts from the ground is handled
 automatically by the QPCC solver.
 
-\section{Evaluation and Limitations}
+\section{Discussion}
 \label{sec:Evaluation}
 
-\paragraph{QPCC.} To evaluate our QPCC solver, we tested it on $10$
+We have presented a system for animating soft body characters, with a
+particular emphasis on locomotion.  Key aspects of our approach include
+the coordinated deformation of groups of finite elements using virtual
+muscle fibers, the specification of high-level goals by the animator, and
+the use of a new solver that handles static, sliding and breaking contact
+cases.  Our system allows us to create soft body characters that
+demonstrate a variety of locomotion behaviors, including crawling,
+hopping, walking, sliding and rolling.  Our characters move in an organic
+manner, and they follow the animation principles of anticipation,
+squash-and-stretch, and follow through.
+
+One important contribution of this chapter is the formulation of QPCC and its solver.
+QPCC is an NP-hard problem \cite{Braun:2005} and our method provides an effective heuristic.
+To evaluate our QPCC solver, we tested it on $10$
 QPCC problems with 98 variables and 40 pairs of linear complementarity
 constraints. We compared our solutions (QPCC in Table~\ref{tab:qpcc}) with the ground truth, as well
 as with the solutions based on the static contact assumption (QP in Table~\ref{tab:qpcc}). The
@@ -837,19 +835,25 @@ in Table \ref{tab:qpcc}.
 \hline
 &\multicolumn{3}{|c|}{QPCC} & \multicolumn{3}{|c|}{QP}  & \multicolumn{3}{|c|}{Ground Truth} \\ \hline
 & Avg & Best & Worst & Avg & Best & Worst & Avg & Best & Worst \\ \hline
-Objective Value & 1483.16 & 21.79 & 697.91 & 5222.84 & 2072.00& 1246.95 & 772.85 & 0.00 & 0.00 \\ \hline
-Num Iterations & 17 & 3 & 31 & 1 & 1 & 1 & 10000 & 10000 & 10000 \\
+Obj Value & 1483.2 & 21.8 & 697.9 & 5222.8 & 2072.0& 1246.9 & 772.9 & 0.0 & 0.0 \\ \hline
+\#Iterations & 17 & 3 & 31 & 1 & 1 & 1 & 10000 & 10000 & 10000 \\
 \hline
 \end{tabular}
  \caption{The results of the numerical experiments of the QPCC solver. }
  \label{tab:qpcc}
 \end{table*}
+Although the empirical results showed that our QPCC solver can
+effectively solve contact resolution problem and balance between the
+quality of solution and computational time, the QPCC solver does not
+guarantee finding the minimizer in polynomial time. In the
+worst case, it takes the same amount of time as the exhaustive search
+to find the global minimizer.
 
-\paragraph{Limitations.} Our system has a few limitations.  The
+Our system has a few limitations.  The
 optimization scheme described in Section \ref{sec:control} only
 optimizes the control variables for the next time step. This type of
 greedy algorithm sometimes leads to unnaturally large muscle contraction or
-discontinuities in motion. For example, the rolling ``O'' demo in the accompanying
+discontinuities in motion. For example, the rolling ``O'' demo in the
 video exhibits some unnatural vibration. Furthermore, the greedy algorithm prevents us
 from simulating anticipatory behaviors in motion. For example, we were
 not able to develop a ``cartwheel'' controller for the I-shaped
@@ -858,31 +862,9 @@ optimizing a long-window of trajectory. This issue can potentially be
 solved by implementing long-horizon optimization or model predictive
 control methods.
 
-QPCC is an NP-hard problem \cite{Braun:2005} and our method provides an effective heuristic.
-Although the empirical results showed that our QPCC solver can
-effectively solve contact resolution problem and balance between the
-quality of solution and computational time, the QPCC solver does not
-guarantee finding the minimizer in polynomial time. In the
-worst case, it takes the same amount of time as the exhaustive search
-to find the global minimizer.
-
-\section{Conclusion}
-
-We have presented a system for animating soft body characters, with a
-particular emphasis on locomotion.  Key aspects of our approach include
-the coordinated deformation of groups of finite elements using virtual
-muscle fibers, the specification of high-level goals by the animator, and
-the use of a new solver that handles static, sliding and breaking contact
-cases.  Our system allows us to create soft body characters that
-demonstrate a variety of locomotion behaviors, including crawling,
-hopping, walking, sliding and rolling.  Our characters move in an organic
-manner, and they follow the animation principles of anticipation,
-squash-and-stretch, and follow through.
-
 One of the issues that we hope to explore in the future is to expand
 our solution techniques to handle longer-term goals that cannot be
-reached using our current optimization method. In this work, all muscles are manually designed.
-We would like to develop an automatic muscle design algorithm to incorporate more sophisticated muscle structures.
+reached using our current optimization method. In this work, all muscles are manually designed. We would like to develop an automatic muscle design algorithm to incorporate more sophisticated muscle structures.
 We would also like to
 investigate muscle design for chunkier creatures. For example, it is
 not immediately obvious how muscle fibers should be arranged for the
