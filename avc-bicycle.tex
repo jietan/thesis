@@ -5,7 +5,7 @@ The invention of tools has greatly increased the efficiency of our work and the 
 
 Designing an algorithm to learn to ride a bicycle presents unique challenges. Riding a bicycle involves complex interactions between a human rider and a bicycle. While the rider can actively control each joint, the bicycle is a passive system that can only be controlled by the human rider. To control a single degree of freedom (DOF) of a bicycle, coordinated motions of multiple DOFs of the rider are required. Moreover, the main difficulty in locomotion is to control an under-actuated system by exploiting external contact forces. Manipulating contact forces on a bicycle is indirect. All of the rider's control forces need to first go through the bicycle dynamics to affect the ground reaction forces and vice versa. This extra layer of bicycle dynamics between the human control and the contact forces adds another layer of complexity to the locomotion control. Balance on a bicycle is challenging and it is different from balance when standing or walking. While a human can stand stably due to the large contact area of the feet, a static bicycle cannot stay upright due to its narrow tires. Humans can balance during walking by planning and changing their foot placement. In contrast, the bike rider cannot abruptly change the contact position, which can only be changed gradually through steering. The limited range of human motion on a bicycle makes balance even harder. When the character's hands are constrained to hold the handlebar and their feet are on the pedals, the character loses much of the freedom to move various body parts. He or she cannot employ ankle or hip postural strategies or wave their arms to effectively regulate the linear and the angular momenta.
 
-Balance during bicycle stunts is far more challenging than normal riding. As a stunt example that illustrates the balance issues we plan to tackle, consider a bicycle endo (bottom-left image of Figure~\ref{fig:teaser3}), in which the rider lifts the rear wheel of the bicycle and keeps balance on the front wheel. In this pose, the rider encounters both the longitudinal and lateral instabilities. The small contact region of one wheel and the lifted center of mass (COM) due to the forward leaning configuration exacerbate the balance problem. Furthermore, the off-the-ground driving wheel makes any balance strategies that involve acceleration impossible. The unstable configurations and the restricted actions significantly increase the difficulty of balance during a stunt.
+Balance during bicycle stunts is far more challenging than normal riding. As a stunt example that illustrates the balance issues we plan to tackle, consider a bicycle endo (the third image of Figure~\ref{fig:teaser3}), in which the rider lifts the rear wheel of the bicycle and keeps balance on the front wheel. In this pose, the rider encounters both the longitudinal and lateral instabilities. The small contact region of one wheel and the lifted center of mass (COM) due to the forward leaning configuration exacerbate the balance problem. Furthermore, the off-the-ground driving wheel makes any balance strategies that involve acceleration impossible. The unstable configurations and the restricted actions significantly increase the difficulty of balance during a stunt.
 
 This chapter describes a complete system for controlling a human character that is riding a bicycle in a physically simulated environment. The system consists of two main components: simulating the motion and optimizing the control policy. We simulate the bicycle and the rider as an articulated rigid body system, which is augmented with specialized constraints for bicycle dynamics. The second component provides an automatic way to learn control policies for a wide range of bicycle maneuvers. In contrast to many optimal control algorithms that leverage the dynamics equations to compute the control signals, we made a deliberate choice not to exploit the dynamics equations in our design of the control algorithm. We believe that learning to ride a bicycle involves little reasoning about physics for most people. A four-year-old can ride a bicycle without understanding any physical equations. Physiological studies show that learning to ride a bicycle is a typical example of implicit motor learning \cite{Chambaron2009}, in which procedural memory guides our performance without the need for conscious attention. Procedural memory is formed and consolidated through repetitive practice and continuous evolution of neural processes. Inspired by the human learning process, we formulate a partially observable Markov decision process (POMDP) and use policy search to learn a direct mapping from perception to reaction (procedural memory).
 
@@ -180,7 +180,7 @@ v_i=\sigma(\sum_j w_{ij} v_j)
 \end{displaymath}
 where $w_{ij}$ is the connection weight between neuron $i$ and $j$, and $\sigma$ is the sigmoid function $\sigma(x) = 1/(1+e^{-x})$.
 
-Parametrization determines the potential quality of the optimal policy. The network shown in Figure~\ref{fig:simpleNetwork} Left is too simple for representing a complex policy required by bicycle stunts. However, it is not clear how to manually design the network structure, given the control policies of unsuccessful stunts. For this reason, we use NEAT to search for both the structure of the neural network and its weights simultaneously, which finds far better policies than searching over a fixed network. Figure~\ref{fig:simpleNetwork} Right demonstrates the learned network for the balance task of a bicycle endo using NEAT. See Section~\ref{sec:improvement} for more details.
+Parametrization determines the potential quality of the optimal policy. The network shown in Figure~\ref{fig:simpleNetwork} Left is too simple for representing a complex policy required by bicycle stunts. However, it is not clear how to manually design the network structure, given the control policies of unsuccessful stunts. For this reason, we use NEAT to search for both the structure of the neural network and its weights simultaneously, which finds far better policies than searching over a fixed network. Figure~\ref{fig:simpleNetwork} Right demonstrates the learned network for the balance task of a bicycle endo using NEAT. See Chapter~\ref{sec:improvement} for more details.
 
 \subsubsection{Policy Evaluation}
 To evaluate a policy, we formulate a reward function in the following form:
@@ -189,7 +189,7 @@ R(s)=R_t(s)+wR_r(s)
 \end{equation}
 where $R_t$ and $R_r$ are task-specific and regularization terms respectively. $w$ is the weight.
 
-We use eq.(\ref{eq:balanceReward}) as the task-specific reward for balance-driven tasks. As the reward is accumulated over time, the return counts the number of frames that the bicycle stays upright. The task-specific reward varies for each momentum-driven stunt. For example, the reward for initiating an endo (lifting the rear wheel) is to maximize the negative pitch angle of the bike $R_t=-\beta$. We refer the readers to Section \ref{sec:results} and for more detailed descriptions of task-specific rewards.
+We use eq.(\ref{eq:balanceReward}) as the task-specific reward for balance-driven tasks. As the reward is accumulated over time, the return counts the number of frames that the bicycle stays upright. The task-specific reward varies for each momentum-driven stunt. For example, the reward for initiating an endo (lifting the rear wheel) is to maximize the negative pitch angle of the bike $R_t=-\beta$. We refer the readers to Chapter \ref{sec:results} and for more detailed descriptions of task-specific rewards.
 
 Given the task-specific reward term alone, multiple optimal policies could exist. Taking the balance task as an example, a policy that rides in a straight line and another that oscillates in a sinusoidal path by periodically swinging the handlebar can both balance well and thus yield the same value. The regularization term is mainly used to eliminate this ambiguity. We use the regularization term $R_r=\frac{1}{|\theta|+\epsilon}$ to express our preference of riding straight. In our examples, all the regularizers are in the form of
 \begin{displaymath}
@@ -215,6 +215,10 @@ The evolution ends when the policy values do not increase over a certain number 
 \section{Results}
 \label{sec:results}
 
+In this section we describe the results of our system. Please watch the video\footnote{https://dl.dropboxusercontent.com/u/36899427/siggraph2014.mp4} for the bicycle riding and stunt
+animations. Our system was implemented in C++, and we used ODE with additional chain constraints to simulate both the bicycle and the human rider. The simulator runs in real time on a desktop workstation with a 2.26GHz CPU and 4GB of memory. We generated 90 samples per iteration and 50 iterations for offline policy search. The computations were distributed across 16 CPU cores on a cluster. The learning time ranges from a few minutes to half an hour depending on the number of simulations used to estimate the expected return (eq.~\ref{eq:policyValue}). Table~\ref{table:stateActions} summarizes the choices of states and actions for each bicycle task.
+
+We designed three different bicycles and a unicycle to test our controllers on a variety of tasks. \emph{Road bikes} (Figure~\ref{fig:balance}) are designed to travel at speed on paved roads. They have very narrow tires to reduce the rolling resistance. The seats are mounted high so that the riders can bend their upper bodies down for less air resistance. We use a \emph{BMX bike} (Figure~\ref{fig:endo}) for stunts. BMX bikes are usually considerably smaller for nimble and agile handling. They have fat tires to facilitate balance and to increase traction. BMX bicycle parts can often be customized to meet the needs of different stunts. \emph{High wheelers} (Figure~\ref{fig:highwheeler}) are an old style of bicycle appearing in the late 19th century. They have a large front wheel and a much smaller rear wheel. This peculiar design makes high wheelers difficult to ride due to the center of mass being high and not far behind the front wheel. Any sudden stop could send the rider over the handlebars. A \emph{unicycle} (Figure~\ref{fig:unicycle}) has only one wheel and no handlebar. The rider needs to be concerned about the balance in both the longitudinal and the lateral directions. Different cycle designs greatly affect the handling characteristics and change the behavior of the riders. This variety puts the generality of our algorithm to the test. We modeled all the cycles and calculated their mass properties in SolidWorks.
 
 \begin{figure*}[!t]
 \centering
@@ -230,53 +234,6 @@ The evolution ends when the policy values do not increase over a certain number 
 \label{fig:stair}
 \end{figure*}
 
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=\textwidth]{figures/Curb}
-\caption{A character lifts the front wheel to ride over a curb.}
-\label{fig:curb}
-\end{figure*}
-
-\begin{figure*}[!t]
-\centering
-\includegraphics[width=\textwidth]{figures/endo}
-\caption{A character performs an endo and balance on the front wheel.}
-\label{fig:endo}
-\end{figure*}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/frontWheelPivot}
-\caption{A character completes a quick 180-degree turn by pivoting the bicycle on the front wheel.}
-\label{fig:pivot}
-\end{figure*}
-
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/bunnyHop}
-\caption{A character performs the American bunny hop over a clown lying on the ground.}
-\label{fig:bunnyhop}
-\end{figure*}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/velocipede}
-\caption{A character rides a high wheeler and performs a stunt in which he rides backward on a single wheel.}
-\label{fig:highwheeler}
-\end{figure*}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/unicycle}
-\caption{A clown rides a unicycle.}
-\label{fig:unicycle}
-\end{figure*}
-
-In this section we describe the results of our system. Please watch the video (https://dl.dropboxusercontent.com/u/36899427/siggraph2014.mp4) for the bicycle riding and stunt
-animations. Our system was implemented in C++, and we used ODE with additional chain constraints to simulate both the bicycle and the human rider. The simulator runs in real time on a desktop workstation with a 2.26GHz CPU and 4GB of memory. We generated 90 samples per iteration and 50 iterations for offline policy search. The computations were distributed across 16 CPU cores on a cluster. The learning time ranges from a few minutes to half an hour depending on the number of simulations used to estimate the expected return (eq.~\ref{eq:policyValue}). Table~\ref{table:stateActions} summarizes the choices of states and actions for each bicycle task.
-
-We designed three different bicycles and a unicycle to test our controllers on a variety of tasks. \emph{Road bikes} (Figure~\ref{fig:balance}) are designed to travel at speed on paved roads. They have very narrow tires to reduce the rolling resistance. The seats are mounted high so that the riders can bend their upper bodies down for less air resistance. We use a \emph{BMX bike} (Figure~\ref{fig:endo}) for stunts. BMX bikes are usually considerably smaller for nimble and agile handling. They have fat tires to facilitate balance and to increase traction. BMX bicycle parts can often be customized to meet the needs of different stunts. \emph{High wheelers} (Figure~\ref{fig:highwheeler}) are an old style of bicycle appearing in the late 19th century. They have a large front wheel and a much smaller rear wheel. This peculiar design makes high wheelers difficult to ride due to the center of mass being high and not far behind the front wheel. Any sudden stop could send the rider over the handlebars. A \emph{unicycle} (Figure~\ref{fig:unicycle}) has only one wheel and no handlebar. The rider needs to be concerned about the balance in both the longitudinal and the lateral directions. Different cycle designs greatly affect the handling characteristics and change the behavior of the riders. This variety puts the generality of our algorithm to the test. We modeled all the cycles and calculated their mass properties in SolidWorks.
 
 \begin{table}[!b]
 \centering
@@ -309,6 +266,20 @@ unicycle              & $\alpha, \dot{\alpha}, \beta, \dot{\beta}, v_r, \Delta v
 
 \paragraph{Going down stairs.} Figure~\ref{fig:stair} shows the character riding down a series of stairs. Each step is 0.15m high and 0.8m wide. We used the same balance controller as in the previous example. This balance task is more challenging because the frequent loss of contact and the sudden collisions between the front tire and the ground narrow the window of effective control and introduce large perturbations. Initially, the rider needs to make large corrections with the handlebar to keep balance when the forward speed is low. As the bicycle travels faster, the corrections become smaller and steadier.
 
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/Curb}
+\caption{A character lifts the front wheel to ride over a curb.}
+\label{fig:curb}
+\end{figure*}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/endo}
+\caption{A character performs an endo and balance on the front wheel.}
+\label{fig:endo}
+\end{figure*}
+
 \paragraph{Going over curbs.} Riding over curbs (Figure~\ref{fig:curb}) can be performed by lifting the front wheel using feed-forward control only. We therefore parameterized the actions with two splines (Table~\ref{table:stateActions}) and trained the controller using CMA. We used a task-specific reward function to maximize the pitch of the bicycle $R_t = \beta$ during lifting. In the animation, as the bicycle approaches a curb (0.12m high), the rider first leans forward and then pushes her upper body backwards. When the arms are stretched out to the maximum length, the sudden deceleration of the upper body pitches the whole bike upwards. The pitch angle is further increased by pedaling faster. This sequence of highly coordinated movements is discovered automatically by the policy search algorithm. Once the front wheel goes over the curb, the balance controller takes over and keeps the bike upright when the rear wheel hits the curb.
 
 \paragraph{Real time user interaction.} A user can interact with our bike simulation in real time. We video captured a sequence that shows a person using a joystick that is equipped with motion sensors to control the rider and the bicycle. The rider goes over a curb, survives a crosswind, goes down a set of stairs, and follows a curvy path to the goal. Note that the user only gives high level commands such as the desired steering angle and the timing of lifting the front wheel. The balance, the actual steering and the rider's motions are all controlled by the policy learned from the offline training process.
@@ -320,6 +291,21 @@ unicycle              & $\alpha, \dot{\alpha}, \beta, \dot{\beta}, v_r, \Delta v
 The feed-forward controller is succeeded by a feedback balance controller. To maintain an endo, the rider continuously applies or releases the front brake for longitudinal balance and steers the handlebar towards the direction of leaning for lateral balance. This stunt is especially challenging. If the pitch angle is too large, when the COM is above or in front of the front tire contact, such a gentle slope cannot provide enough acceleration to prevent overturning. If the pitch angle is too shallow, to prevent the rear wheel from dropping to the ground, braking hard will quickly halt the bicycle and make the balance strategy of ``steering toward falling'' ineffective. This complicated coupling between the pitch angle, the speed and the lateral balance makes heavy demands on the policy search algorithm. NEAT successfully finds a policy that can maintain balance for an extensively long period of time. Figure~\ref{fig:simpleNetwork} Right illustrates the complex neural network required for this task.
 
 In the accompanying video, we also demonstrate the learning process of an endo. The animation shows the resulting balance controller after one, five and ten iterations. As more iterations are finished, the rider gradually masters an endo and maintains balance for a longer period of time.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/frontWheelPivot}
+\caption{A character completes a quick 180-degree turn by pivoting the bicycle on the front wheel.}
+\label{fig:pivot}
+\end{figure*}
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/bunnyHop}
+\caption{A character performs the American bunny hop over a clown lying on the ground.}
+\label{fig:bunnyhop}
+\end{figure*}
 
 \paragraph{Front wheel pivot.} A front wheel pivot (Figure~\ref{fig:pivot}) is a fast way to turn the bicycle 180 degrees by pivoting on the front wheel. We used a feed-forward controller and applied two separate task-specific rewards during two phases of this motion. The first reward function maximizes the angle of turning during the pivoting phase.
 \begin {displaymath}
@@ -335,6 +321,20 @@ After the rear wheel touches the ground, we switch to a learned balance controll
 \paragraph {Back hop.} The back hop is another way to balance on the rear wheel. This feedback balance strategy uses small hops to change the relative position between the contact and the COM. In the animation, the rider and the bike start at an initial pose in which the COM is behind the contact point between the rear wheel and the ground. The bike will fall backwards if the rider does not correct for this. He bends his knees and then extends them to bring the rear wheel off the ground. He quickly pulls the handlebar towards himself in mid-air to adjust the pitch of the bicycle. When the rear wheel lands, the COM comes closer to the ground contact position. As a result, the rider can continue to hop and balance for a long time.
 
 \paragraph{Bunny hop.} Figure~\ref{fig:bunnyhop} shows the rider performing a bunny hop on a BMX bike. A bunny hop is a stunt where the rider jumps with the bike over an obstacle or a trench. The task-specific reward function for the feed-forward controller is evaluated based on the height of both tires above the ground $R_t=h_fh_r$. Right before the hop, the rider first leans forward and then moves his pelvis rapidly towards the back of the bicycle. This vigorous motion tilts the bicycle upward. The rider then jumps with the bicycle over a clown lying on the ground. We were pleased to see that the optimal policy for the bunny hop motion includes a phase that tilts the bicycle up, which is essential to jumping for a greater height and distance. This style is known as the ``American bunny hop''.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/velocipede}
+\caption{A character rides a high wheeler and performs a stunt in which he rides backward on a single wheel.}
+\label{fig:highwheeler}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/unicycle}
+\caption{A clown rides a unicycle.}
+\label{fig:unicycle}
+\end{figure*}
 
 \paragraph{Riding a high wheeler.} The peculiar design of a high wheeler makes ``headers'' a significant hazard, in which the rider gets pitch forward off the bicycle. We took on the challenge and designed a stunt that we had never seen performed on a high wheeler (Figure~\ref{fig:highwheeler}). During the stunt, the rider intentionally stops the bike to initiate a forward rotation. He then carefully changes pedaling speed to avoid taking a header and successfully rides backward on a single wheel. The rider can balance for a few seconds even without a lateral balance controller, probably due to the prominent gyroscopic effect from the large rotating front wheel. When the rider starts to lose balance, he accelerates to return to the normal riding mode, in which we used the same balance and steering controller as in the road bike examples.
 
@@ -390,12 +390,14 @@ Although the learning algorithms presented in this chapter are general, the qual
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=3.4in]{figures/TorquePlot}
+  \includegraphics[width=5in]{figures/TorquePlot}
   \caption{Torque trajectories over time of performing an endo and riding a bicycle on a flat ground. }
   \label{fig:torquePlot}
 \end{figure}
 
 We further examine the torque trajectories (Figure~\ref{fig:torquePlot}), and observe that the controllers learned different strategies to achieve different tasks. In the endo example, the torques switch abruptly between the two extreme values. It is similar to the ``bang-bang control'' that frequently arises in time-critical tasks, indicating that the task of endo might also be time-critical. In contrast, the torque trajectory of riding a bicycle on a flat terrain shows more smooth transitions, which implies that normal biking does not require instant reactions and is thus an easier task.
+
+Policy search is a powerful method for learning optimal controllers. However, manually designing parametrization of the policies could be challenging for difficult tasks. Combining policy search with NEAT makes it easy to use and unleashes its full power. We have demonstrated that searching for both the parametrization and the parameters of a policy creates robust controllers for a wide variety of bicycle balance tasks. Since many previous studies focused on optimizing the parameters alone, we evaluated the necessity of optimizing the parametrization. Figure~\ref{fig:compare} Left and Right compares two policy search results with a fixed and with an evolving parametrization for the balance task of an endo. Both searches started with the same parametrization: a neural network with direct connections between the input and the output layers. We used CMA to search for only the weights while we used NEAT to evolve both the weights and the network structure. Both algorithms were run for 50 iterations with 90 samples per iteration. We ran each search ten times with different random seeds to reduce the stochastic bias. Figure~\ref{fig:compare} Left plots the curves of the policy value versus the number of iterations in the CMA search. Note that none of the searches reached a value of 3000. In comparison, eight out of ten NEAT searches found policies scored higher than 3000 (Figure ~\ref{fig:compare} Right). Three of them reached almost 7000. The average final policy value of NEAT was almost twice its CMA counterpart. A similar comparison was conducted between neuroevolution with and without augmenting topology, and this told the same story (Figure~\ref{fig:compare} Middle vs. Right). Even though we only reported the detailed comparison for this particular example, we observed the same trend for other bicycle stunts: policy search with an evolving parametrization significantly outperforms search with a fixed parametrization. The neural network structure for all the balance-driven tasks are shown in Appendix \ref{chapter:AppendixC}.
 
 \begin{figure*}[ht]
   \centering
@@ -404,9 +406,7 @@ We further examine the torque trajectories (Figure~\ref{fig:torquePlot}), and ob
   \label{fig:compare}
 \end{figure*}
 
-Policy search is a powerful method for learning optimal controllers. However, manually designing parametrization of the policies could be challenging for difficult tasks. Combining policy search with NEAT makes it easy to use and unleashes its full power. We have demonstrated that searching for both the parametrization and the parameters of a policy creates robust controllers for a wide variety of bicycle balance tasks. Since many previous studies focused on optimizing the parameters alone, we evaluated the necessity of optimizing the parametrization. Figure~\ref{fig:compare} Left and Right compares two policy search results with a fixed and with an evolving parametrization for the balance task of an endo. Both searches started with the same parametrization: a neural network with direct connections between the input and the output layers. We used CMA to search for only the weights while we used NEAT to evolve both the weights and the network structure. Both algorithms were run for 50 iterations with 90 samples per iteration. We ran each search ten times with different random seeds to reduce the stochastic bias. Figure~\ref{fig:compare} Left plots the curves of the policy value versus the number of iterations in the CMA search. Note that none of the searches reached a value of 3000. In comparison, eight out of ten NEAT searches found policies scored higher than 3000 (Figure ~\ref{fig:compare} Right). Three of them reached almost 7000. The average final policy value of NEAT was almost twice its CMA counterpart. A similar comparison was conducted between neuroevolution with and without augmenting topology, and this told the same story (Figure~\ref{fig:compare} Middle vs. Right). Even though we only reported the detailed comparison for this particular example, we observed the same trend for other bicycle stunts: policy search with an evolving parametrization significantly outperforms search with a fixed parametrization. The neural network structure for all the balance-driven tasks are shown in Appendix \ref{chapter:AppendixC}.
-
-As illustrated in Section \ref{sec:results}, many bicycle stunts need balance in both the longitudinal and lateral directions. In our implementation, we decoupled the balance task in these two directions and learned the task in two steps. In the first step, we focused on longitudinal balance and chose only the relevant states and actions. We artificially increased the width of the tire to 20cm so that the controller did not need to be concerned about the loss of balance in the lateral direction. This is analogous to using training wheels in real life. Once the longitudinal controller had been learned, we fixed that part of the neural network, reduced the width of the tire back to normal\footnote{The tire width of the road bike and the high wheeler is 1.5cm while the tire width of the BMX bike and the unicycle is 3cm.} and then performed the second step of training for lateral balance. Although in theory, optimizing a controller for the longitudinal and the lateral balance simultaneously would have a better global optimum, in practice, searching for a policy in a higher dimensional space is subject to local minima and thus could produce inferior results. In all our examples, this two-step training found better policies than training both longitudinal and lateral balance simultaneously.
+As illustrated in Chapter \ref{sec:results}, many bicycle stunts need balance in both the longitudinal and lateral directions. In our implementation, we decoupled the balance task in these two directions and learned the task in two steps. In the first step, we focused on longitudinal balance and chose only the relevant states and actions. We artificially increased the width of the tire to 20cm so that the controller did not need to be concerned about the loss of balance in the lateral direction. This is analogous to using training wheels in real life. Once the longitudinal controller had been learned, we fixed that part of the neural network, reduced the width of the tire back to normal\footnote{The tire width of the road bike and the high wheeler is 1.5cm while the tire width of the BMX bike and the unicycle is 3cm.} and then performed the second step of training for lateral balance. Although in theory, optimizing a controller for the longitudinal and the lateral balance simultaneously would have a better global optimum, in practice, searching for a policy in a higher dimensional space is subject to local minima and thus could produce inferior results. In all our examples, this two-step training found better policies than training both longitudinal and lateral balance simultaneously.
 
 Our attempts at learning bicycle stunts using other reinforcement learning algorithms ended up unsuccessful, but these valuable experiences led us to our current solution. Our first attempt was to use standard value iteration method with a discretized state space. The high dimensional state space made the tabular representation infeasible. We encountered the convergence issue when the state space was parameterized by polynomial and Gaussian kernel bases. We also experimented with a few model-free learning algorithms. For example, SARSA($\lambda$) demonstrated some potential (\ie the normal cycling was successful), but the computation time was too long even for the simplest task. Although our final decision was to use policy search, the initial experiments were unsuccessful due to an overly simplified policy parametrization: a neural network without hidden layers. Using quadratic features to enrich the inputs of the network, we had some limited success with the optimal solutions solved by CMA. However, without a systematic way to perform feature selection, the likelihood of finding a successful local minimum is low due to the large number of quadratic features. Finally, we chose NEAT, a bottom-up approach that complexifies the parametrization from the simple network. This method consistently found policies that worked for all our examples.
 

@@ -143,7 +143,7 @@ $\vc{p}$, is computed through numerical integration of the dynamic
 equations of motion:
 \begin{equation}
 \vc{M}\ddot{\vc{p}} = \vc{f}_{x} + \vc{f}_{e}+\vc{f}_{d}+\vc{f}_{m}
-\label{eq:dynamics}
+\label{eq:softDynamics}
 \end{equation}
 where $\vc{M}$ is the mass matrix of the discretized soft body and
 $\vc{p}$ is the nodal position of the deformed shape. The forces on
@@ -263,7 +263,7 @@ which is also the dimension of our control variables.
 \subsection{Numerical Integration}
 To ensure the stability of our system with large time steps, we use an
 implicit integrator to solve the dynamic equations. After substituting
-each force terms into eq. (\ref{eq:dynamics}), we arrive at the following
+each force terms into eq. (\ref{eq:softDynamics}), we arrive at the following
 dynamic equation:
 \begin{equation}
 \vc{M\ddot{p}}=\vc{f}_x-\vc{K}(\vc{p} -\vc{R}\vc{x}) -
@@ -288,7 +288,7 @@ the right hand side of eq. (\ref{eq:integration}).
 
 
 \section{Locomotion Control}
-\label{sec:control}
+\label{sec:softControl}
 
 To create functional locomotion using the simulation framework described
 in previous section, we need a control algorithm to compute the appropriate
@@ -312,7 +312,7 @@ In addition to the objective function, the optimization must satisfy two
 constraints. The first constraint enforces the range of muscle
 contractions: $0.5 \vc{l}_0 \leq \vc{l}_d \leq \vc{l}_0$, where $\vc{l}_0$ denotes the muscle length at the rest pose. The second constraint enforces valid contact under Coulomb's friction model. We adapt an implicit time-stepping LCP method to regulate contact velocity and contact force, $\vc{f}_c = \vc{N} f_\perp + \vc{D}\vc{f}_\parallel$, where $\vc{N}$ is the unit normal vector, $\vc{D}$ is a set of tangential directions at the contact point, and $f_\perp$ and $\vc{f}_\parallel$ are the magnitudes of normal and tangent forces. The optimization with constraints can be written as
 \begin{align}
-\label{eqn:optimization}
+\label{eqn:softOptimization}
  \min_{\vc{l}_d,\vc{f}_\perp,\vc{f}_\parallel,\lambda} G&(\vc{l}_d,\vc{f}_\perp,\vc{f}_\parallel)  \\
 \nonumber  \mathrm{subject\;} &\mathrm{to} \\
 \nonumber   &0.5\vc{l}_0 \leq \vc{l}_d \leq \vc{l}_0 \\
@@ -336,14 +336,14 @@ correct it at the next time step. In soft body control, assuming
 static contacts is too restrictive and significantly reduces the
 effectiveness of the controller. As a result, we cannot drop the
 complementarity constraints in the optimization. We will introduce a
-new iterative solver to QPCC for contact modeling in Section
+new iterative solver to QPCC for contact modeling in Chapter
 \ref{sec:QPCC}.
 
 \subsection{Low-level Controllers}
 \label{sec:controller}
 We develop three types of low-level control mechanisms by formulating different
 objective functions $G(\vc{l}_d, \vc{f}_\perp, \vc{f}_\parallel)$ in
-eq. (\ref{eqn:optimization}). In Section \ref{sec:results}, we
+eq. (\ref{eqn:softOptimization}). In Chapter \ref{sec:softResults}, we
 demonstrate that these three basic mechanisms can be combined to
 design fundamentally different locomotion controllers.
 
@@ -419,7 +419,7 @@ G(\vc{l}_d, \vc{f}_\perp, \vc{f}_\parallel) = \| f(\dot{\vc{p}}^{n+1}) - \bar{\d
 \section{QPCC for contact modeling}
 \label{sec:QPCC}
 
-The control framework described in Section \ref{sec:control} requires
+The control framework described in Chapter \ref{sec:softControl} requires
 an efficient QPCC solver that can handle $50$ to $100$ complementarity
 variables. Solving QPCC in general is difficult due to the presence of
 the linear complementarity constraints. A na\"{\i}ve way to solve QPCC is
@@ -432,7 +432,7 @@ variables for each contact point (one for $f_\perp$, eight for
 $\vc{f}_\parallel$ and one for $\lambda$). Thus, a few contact points
 alone will render the exhaustive method computational impractical.
 
-We propose a more efficient way to solve a QPCC for contact problems, such as eq. (\ref{eqn:optimization}). Our iterative QPCC solver starts with an initial guess, which is a set of linear constraints that are compatible with the complementarity conditions. For the initial guess, we manually set some elements of $\vc{f}_\perp$, $\vc{f}_\parallel$, and $\lambda$ to be zero and their complementary pairs to be nonnegative, in a way that the state of those variables has a physical meaning. For example, if we assume all contact points are static, we arrive at the following convex QP:
+We propose a more efficient way to solve a QPCC for contact problems, such as eq. (\ref{eqn:softOptimization}). Our iterative QPCC solver starts with an initial guess, which is a set of linear constraints that are compatible with the complementarity conditions. For the initial guess, we manually set some elements of $\vc{f}_\perp$, $\vc{f}_\parallel$, and $\lambda$ to be zero and their complementary pairs to be nonnegative, in a way that the state of those variables has a physical meaning. For example, if we assume all contact points are static, we arrive at the following convex QP:
 \begin{align}
 \min_{\vc{l}_d,\vc{f}_\perp,\vc{f}_\parallel,\lambda} G&(\vc{l}_d,\vc{f}_\perp,\vc{f}_\parallel) & \label{eqn:initialGuess} \\
 \mathrm{subject\;} &\mathrm{to} & \nonumber\\
@@ -517,10 +517,10 @@ decrease monotonically, our experiments show that the objective value
 decreases drastically within a small number of iterations. The minimizer
 found by our solver is, in all the experiments, significantly closer to
 optimal than the one solved under the static contact assumption. We report the
-results of the experiments in Section \ref{sec:Evaluation}.
+results of the experiments in Chapter \ref{sec:softEvaluation}.
 
 \paragraph{Implementation.}
-Our solver requires a feasible initial guess. We can use the trivial solution under static contact assumption (eq. (\ref{eqn:initialGuess})) as an initial guess, or the solution from the previous QPCC when it is available (warm start). Occasionally, they might result in an infeasible QP. For those cases, we assume the same muscle activation as in last time step, remove the objective function and muscle length constraints from eq. (\ref{eqn:optimization}) and solve a pure LCP. The contact situation from the LCP solution is then used as the initial guess for the QPCC.
+Our solver requires a feasible initial guess. We can use the trivial solution under static contact assumption (eq. (\ref{eqn:initialGuess})) as an initial guess, or the solution from the previous QPCC when it is available (warm start). Occasionally, they might result in an infeasible QP. For those cases, we assume the same muscle activation as in last time step, remove the objective function and muscle length constraints from eq. (\ref{eqn:softOptimization}) and solve a pure LCP. The contact situation from the LCP solution is then used as the initial guess for the QPCC.
 
 We implement the QPCC solver using a graph expansion algorithm (See Appendix \ref{chapter:AppendixA} for details). Each
 QP with linear constraints is a node in the graph. We visit each node
@@ -541,7 +541,7 @@ solution is the best minimizer found so far by the QPCC solver.
 
 \section{Results}
 
-\label{sec:results}
+\label{sec:softResults}
 \begin{figure*}[ht]
 \centering
 \includegraphics[width=\textwidth]{figures/HSwing.eps}
@@ -557,36 +557,8 @@ perturbation by regulating its momenta, widening its base and lowering its cente
 \label{fig:IBalance}
 \end{figure*}
 
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/FBalance.eps}
-\caption{An F-shaped soft body character maintains balance under a persistent and continuously increasing pulling force on a slippery surface. It actively leans backward to avoid tipping over.}
-\label{fig:FBalance}
-\end{figure*}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/IJump.eps}
-\caption{An I-shaped soft body character squashes and stretches its whole body to jump forward.}
-\label{fig:IJump}
-\end{figure*}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/TTwist.eps}
-\caption{A T-shaped soft body character twists using helical muscles when jumping.}
-\label{fig:TJump}
-\end{figure*}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/XWalk.eps}
-\caption{An X-shaped soft body quadraped walks by slowly lifting and moving one foot at a time.}
-\label{fig:XWalk}
-\end{figure*}
-
 In this section we describe the results of our soft body locomotion
-controllers. Please see the video (http://dl.dropbox.com/u/36899427/softbodylocomotion.mp4) to watch the locomotion
+controllers. Please see the video\footnote{http://dl.dropbox.com/u/36899427/softbodylocomotion.mp4} to watch the locomotion
 animations. Our system is implemented in C++, and we generated the
 tetrahedral mesh for FEM simulation using TETGEN \cite{Si:2006}. We
 used the GPU to create layered depth figures for collision detection,
@@ -629,7 +601,7 @@ with four longitudinal muscles and one radial muscle for each
 leg (Figure~\ref{fig:muscles}a). It is animated by specifying the
 trajectory of the desired center of mass (COM), which is moved left/right
 by a sine function. We use the position and velocity tracking controller
-from Section \ref{sec:controller} to track the desired COM. Note that when
+from Chapter \ref{sec:controller} to track the desired COM. Note that when
 the ``H'' swings left, its right side elongates and gets thinner while the
 left side shortens and becomes fatter due to the volume preservation. This
 animation clearly exemplifies the principle of \emph{squash and stretch}.
@@ -665,6 +637,27 @@ balance motions, including changing contact situation, lowering the
 COM, widening the base and regulating momentum. In contrast, the QP
 solver (which only allows for static contact constraints) resulted in a falling motion.
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/FBalance.eps}
+\caption{An F-shaped soft body character maintains balance under a persistent and continuously increasing pulling force on a slippery surface. It actively leans backward to avoid tipping over.}
+\label{fig:FBalance}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/IJump.eps}
+\caption{An I-shaped soft body character squashes and stretches its whole body to jump forward.}
+\label{fig:IJump}
+\end{figure*}
+
+
+\begin{wrapfigure}{r}{0.2\textwidth}
+\center
+%\vspace{-30pt}
+\hspace{-30pt}
+\includegraphics[width=0.2\textwidth]{figures/SlideController.eps}
+\end{wrapfigure}
 
 \paragraph{Sliding.} In the example of Figure~\ref{fig:FBalance},
 instead of applying a perturbation force that lasts for a short time,
@@ -672,17 +665,7 @@ we exert an continuously increasing pulling force on the ``F'' standing on
 a slippery surface. We design a sliding balance controller for this
 special balance task. The controller estimates the optimal relative
 position between the center of base (COB) and the COM such that the
-total angular momentum is zero. We use the position and tracking controller to track the optimal
-COB.
-
-\begin{wrapfigure}{r}{0.2\textwidth}
-\center
-%\vspace{-30pt}
-\hspace{-20pt}
-\includegraphics[width=0.2\textwidth]{figures/SlideController.eps}
-\end{wrapfigure}
-
-The sliding balance controller also benefits from our QPCC
+total angular momentum is zero. We use the position and tracking controller to track the optimal COB. The sliding balance controller also benefits from our QPCC
 solution since planning the movement of the COB involves planing the
 change of contact situation (from static to sliding).  We instrument the vertical stroke of the ``F'' with four
 longitudinal muscles. Even though no muscle resides in the horizontal
@@ -703,6 +686,21 @@ balance by constantly switching between sliding and breaking contact
 (small jumps), and eventually it manages to balance.  These changes of
 contact, due to the QPCC solver, makes the controller more robust and
 the soft body character more lifelike.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/TTwist.eps}
+\caption{A T-shaped soft body character twists using helical muscles when jumping.}
+\label{fig:TJump}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/XWalk.eps}
+\caption{An X-shaped soft body quadraped walks by slowly lifting and moving one foot at a time.}
+\label{fig:XWalk}
+\end{figure*}
+
 
 \begin{figure}[!b]
 \centering
@@ -799,7 +797,7 @@ breaking of contact when a foot lifts from the ground is handled
 automatically by the QPCC solver.
 
 \section{Discussion}
-\label{sec:Evaluation}
+\label{sec:softEvaluation}
 
 We have presented a system for animating soft body characters, with a
 particular emphasis on locomotion.  Key aspects of our approach include
@@ -850,7 +848,7 @@ worst case, it takes the same amount of time as the exhaustive search
 to find the global minimizer.
 
 Our system has a few limitations.  The
-optimization scheme described in Section \ref{sec:control} only
+optimization scheme described in Chapter \ref{sec:softControl} only
 optimizes the control variables for the next time step. This type of
 greedy algorithm sometimes leads to unnaturally large muscle contraction or
 discontinuities in motion. For example, the rolling ``O'' demo in the

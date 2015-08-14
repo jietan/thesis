@@ -116,20 +116,21 @@ boundary conditions $p = 0$ at the free surface. Then we project the intermediat
 In this work, we modify the second step ((\ref{eq:poissonEqu}) and (\ref{eq:projection})) to take into account the interaction between the fluid and the articulated rigid bodies.
 
 \subsection{Articulated Rigid Body Simulation}
-In this section, we will describe the numerical techniques that we use to move the body parts of an articulated figure. Later, in Section 4, we will describe the optimization technique that we use to discover efficient swimming gaits.
+\label{sec:articulatedSim}
+In this section, we will describe the numerical techniques that we use to move the body parts of an articulated figure. Later, in Chapter \ref{sec:optimization}, we will describe the optimization technique that we use to discover efficient swimming gaits.
 
 The dynamic equations of an articulated rigid body in generalized coordinates can be expressed as follows.
 \begin{equation}
-\label{eq:dynamics}
+\label{eq:swimDynamics}
 \mathbf{M}(\mathbf{q})\mathbf{\ddot{q}}+\mathbf{C}(\mathbf{q},\mathbf{\dot{q}})=\mathbf{\tau}_{int}+\mathbf{\tau}_{ext}
 \end{equation}
 where $\mathbf{q}$, $\mathbf{\dot{q}}$ and $\mathbf{\ddot{q}}$ are vectors of positions, velocities and accelerations of joint degrees of freedom respectively. $\mathbf{M}(\mathbf{q})$ is the mass matrix and $\mathbf{C}(\mathbf{q},\mathbf{\dot{q}})$ accounts for the Coriolis and Centrifugal force. $\mathbf{\tau}_{int}$ and $\mathbf{\tau}_{ext}$ are internal and external generalized forces.
 
 Given the current state $\mathbf{q}^n$ and $\mathbf{\dot{q}}^n$, we can
-evaluate $\mathbf{M}$ and $\mathbf{C}$ of (\ref{eq:dynamics}). For the
+evaluate $\mathbf{M}$ and $\mathbf{C}$ of (\ref{eq:swimDynamics}). For the
 external forces $\mathbf{\tau}_{ext}$, we consider the
 fluid pressure force. We make use of the modified PD controller of Tan et al. \cite{Tan11SPD} in order to calculate the internal force $\mathbf{\tau}_{int}$ that closely tracks a reference trajectory. Although the details of this method can be found in \cite{Tan11SPD}, we include an overview of this method below. The reference swimming trajectory is computed by an optimization
-process described in Section 4. Once we know both the external and
+process described in Chapter \ref{sec:optimization}. Once we know both the external and
 internal forces, we can solve the acceleration $\mathbf{\ddot{q}}^n$ and
 advance to the next time step via explicit Euler integration.
 
@@ -290,7 +291,7 @@ the interface (condition 1) because the velocity defined at the coupled
 faces are shared by the fluid and the articulated body. The movement of
 the articulated rigid body under the fluid pressure satisfies the equation
 of motion (condition 2) because (\ref{eq:acceleration}) is derived from
-the dynamics (\ref{eq:dynamics}). The fluid is incompressible
+the dynamics (\ref{eq:swimDynamics}). The fluid is incompressible
 (condition 3) because we enforce the divergence free condition by
 (\ref{eq:divFree}). The linear system is of the same size as the
 discretized Poisson equation (\ref{eq:poissonEqu}) in a typical fluid
@@ -305,7 +306,7 @@ considering the pressure forces.
 \section{Swimming Gait Optimization}
 \label{sec:optimization}
 
-Section 3 describes the two-way interaction between fluids and an articulated rigid body system. In particular, Section 3.2 describes how we move the body parts using torques and how we compute the torques for a given reference gait. In this section, we describe an algorithm to automatically design optimal controllers for an active articulated
+We have described the two-way interaction between fluids and an articulated rigid body system. In particular, Chapter \ref{sec:articulatedSim} describes how we move the body parts using torques and how we compute the torques for a given reference gait. In this section, we describe an algorithm to automatically design optimal controllers for an active articulated
 rigid body systems that is moving in a hydrodynamic environment.  Our
 method generates physically realistic strokes based on the swimming
 efficiency of the stroke.
@@ -329,7 +330,7 @@ just optimize over two parameters, amplitude and phase, and leave the
 period and offset fixed.
 
 \subsection{Objective Function}
-
+\label{sec:swimmingObj}
 The objective function in our optimization tries to balance between
 efficiency and energy expenditure of the swimming gait; the creature
 should move as fast as possible in the desired direction without using too
@@ -385,7 +386,7 @@ E_{collision}=\int_{0} ^{t_f}V_{overlap}dt
 where $w_3$ is chosen to be $500$ for all the examples.
 
 \subsection{Optimization}
-
+\label{sec:CMAOptimization}
 Our objective function is discontinuous and prone to local minima due to
 sub-optimal swimming gaits, collision penalties, and the modulation of the
 energy penalty term.  We perform gait optimization using Covariance Matrix
@@ -426,7 +427,7 @@ already found.
 
 In addition to forward thrust, aquatic creatures also employ very
 efficient turning maneuvers, such as pitching up and down or turning left
-and right. The optimization technique described in Section
+and right. The optimization technique described in Chapter
 \ref{sec:optimization} can be modified to learn various
 maneuvers. Once the aquatic creature builds a repertoire of swimming
 maneuvers, we can combine different maneuvers to achieve a high-level
@@ -440,7 +441,7 @@ where $\mathbf{r}$ is the desired axis of rotation. We set the desired swimming 
 \begin{displaymath}
 E_{deviation} = ||\Delta\mathbf{p}-\mathbf{d}^T(\Delta\mathbf{p})\mathbf{d}|| + ||\Delta\mathbf{\alpha}-\mathbf{r}^T(\Delta\mathbf{\alpha})\mathbf{r}||
 \end{displaymath}
-We solve the above optimization using the CMA method in the same way as described in Section 4.3.
+We solve the above optimization using the CMA method in the same way as described in Chapter \ref{sec:CMAOptimization}.
 
 Once different maneuvers have been learned, we apply a simple heuristic to
 decide which maneuver to choose to follow the path. At the beginning of
@@ -454,14 +455,6 @@ which means the point is above or beneath the root of the articulated
 figure. Similarly, $\hat{d}_z$ indicates the path is going upwards or
 downwards relative to the root orientation. We choose the different
 maneuvers based on the following rules.
-\begin{displaymath}
-\textrm{Maneuver}=\left\{\begin{array}{ll}
-\textrm{Go Straight} & \textrm{if } (\hat{p}_z \geq \epsilon \textrm{ and }\hat{d}_z \leq -\epsilon)\\
-                     & \textrm{or } ( \hat{p}_z \leq -\epsilon \textrm{ and } \hat{d}_z \geq \epsilon)\\
-\textrm{Pitch Up} & \textrm{if } \hat{p}_z > \epsilon \textrm{ and } \hat{d}_z > \epsilon\\
-\textrm{Pitch Down} & \textrm{if }\hat{p}_z < -\epsilon \textrm{ and } \hat{d}_z < -\epsilon
-\end{array}\right.
-\end{displaymath}
 
 \begin{figure}[!t]
 \centering
@@ -470,7 +463,6 @@ maneuvers based on the following rules.
 \label{fig:skels}
 \end{figure}
 
-
 \begin{figure}[!t]
 \centering
 \includegraphics[width=3.2in]{figures/grid1.eps}
@@ -478,21 +470,15 @@ maneuvers based on the following rules.
 \label{fig:grid}
 \end{figure}
 
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/fish.eps}
-\caption{A four-link clown fish swims. Carangiform swimmers like this flex the front of their body a little, with the
-majority of the motion near the tail. Note that this fish sheds two separate trails of vortices.}
-\label{fig:fish}
-\end{figure*}
 
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/eel.eps}
-\caption{A swimming seven-link eel. Anguiliform swimmers undulate their whole body as if a wave is travelling from head to tail, and shed two separate trails of vortices from the tail.}
-\label{fig:eel}
-\end{figure*}
-
+\begin{displaymath}
+\textrm{Maneuver}=\left\{\begin{array}{ll}
+\textrm{Go Straight} & \textrm{if } (\hat{p}_z \geq \epsilon \textrm{ and }\hat{d}_z \leq -\epsilon)\\
+                     & \textrm{or } ( \hat{p}_z \leq -\epsilon \textrm{ and } \hat{d}_z \geq \epsilon)\\
+\textrm{Pitch Up} & \textrm{if } \hat{p}_z > \epsilon \textrm{ and } \hat{d}_z > \epsilon\\
+\textrm{Pitch Down} & \textrm{if }\hat{p}_z < -\epsilon \textrm{ and } \hat{d}_z < -\epsilon
+\end{array}\right.
+\end{displaymath}
 where $\epsilon$ is a small positive value to prevent the articulated
 figure from repeatedly choosing alternating turning maneuvers due to small
 deviations from the path. The first case indicates that the nearest point
@@ -506,12 +492,6 @@ and we choose ``pitch up'' or ``pitch down'' accordingly.
 
 \section{Results}
 
-\begin{figure}[!b]
-\centering
-\includegraphics[width=3.2in]{figures/eel2D.eps}
-\caption{A five-link eel swims in a 2D fluid environment. In contrast to the simulation in 3D, an eel swimming in 2D fluid sheds only one single vortex street. Red traces show the counter-clockwise vortices while blue traces show the clockwise vortices.}
-\label{fig:eel2D}
-\end{figure}
 
 We implemented our method using C++ and ran CMA on a cluster with a
 maximum of 100 iterations and with a population size of 16 for 2D and 31 for 3D
@@ -564,29 +544,7 @@ domain, we impose the Dirichlet boundary condition $p=0$ so that the fluid
 outside the domain is free to flow in and vice versa. 3) Since the density
 of most aquatic creatures is similar to that of the fluid, we ignore the force of gravity in our simulator.
 
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/manta.eps}
-\caption{A manta ray swimming forward. Rajiform swimmers swim by slow flapping strokes like a slow-motion version of a bird flapping its wings.}
-\label{fig:manta}
-\end{figure*}
-
-\begin{figure}[!b]
-\centering
-\includegraphics[width=3.2in]{figures/manta_path2.eps}
-\caption{A manta ray follows an S-shaped path by choosing maneuvers from ``swimming straight'', ``pitch up'' and ``pitch down''. The red curve is the path specified by the user.}
-\label{fig:manta_path}
-\end{figure}
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/turtle.eps}
-\caption{A turtle swims in water with a flapping motion of its two front flippers. }
-\label{fig:turtle}
-\end{figure*}
-
-We describe the results of our swimming optimization method.  Please see the video(http://www.cc.gatech.edu/~jtan34/project/videos/articulatedSwimmingCreatures.mp4) to observe the swimming
+We describe the results of our swimming optimization method.  Please see the video\footnote{http://www.cc.gatech.edu/~jtan34/project/videos/articulatedSwimmingCreatures.mp4} to observe the swimming
 animations.  To visualize the fluid flow, we draw \emph{particles traces},
 which show the trajectory of massless particles inside the fluid in a
 short period of time (15 frames). We modulate the transparency of the
@@ -594,22 +552,6 @@ particle traces in 3D examples according to the magnitude of the vorticity
 in order to focus attention on the visually interesting regions of the
 flow.  In 2D examples, we colored the traces to indicate the directions of
 the vortices.
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/frog.eps}
-\caption{A frog mainly relies on its large rear legs to provide forward thrust in the water.}
-\label{fig:frog}
-\end{figure*}
-
-
-\begin{figure*}[ht]
-\centering
-\includegraphics[width=\textwidth]{figures/alien.eps}
-\caption{An alien aquatic creature that swims in water by undulating its tails and flapping its wings. Note the two pairs of wings are slightly out of phase to mimic flapping motion of larger wings.}
-\label{fig:alien}
-\end{figure*}
-
 
 
 There are many body shapes and styles of locomotion for fish, and our
@@ -626,6 +568,28 @@ eel swimming (anguiliform mode).  Note that the wake of our eel has two
 separate trails of vortices that are shed from the tip of the tail, as has
 been observed in lab studies of eels~\cite{tytell2004hydrodynamics}. We show in Figure~\ref{fig:eel2D} that a different wake structure appears when an eel swims in a 2D fluid environment, that of a single vortex street. The difference of the wake structure between the 2D and 3D simulations agrees with Kern and Koumoutsakos's study of eels \cite{kern2006simulations}.
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fish.eps}
+\caption{A four-link clown fish swims. Carangiform swimmers like this flex the front of their body a little, with the
+majority of the motion near the tail. Note that this fish sheds two separate trails of vortices.}
+\label{fig:fish}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/eel.eps}
+\caption{A swimming seven-link eel. Anguiliform swimmers undulate their whole body as if a wave is travelling from head to tail, and shed two separate trails of vortices from the tail.}
+\label{fig:eel}
+\end{figure*}
+
+
+\begin{figure}[b]
+\centering
+\includegraphics[width=3.2in]{figures/eel2D.eps}
+\caption{A five-link eel swims in a 2D fluid environment. In contrast to the simulation in 3D, an eel swimming in 2D fluid sheds only one single vortex street. Red traces show the counter-clockwise vortices while blue traces show the clockwise vortices.}
+\label{fig:eel2D}
+\end{figure}
 
 Our final example of fish motion is that of a manta ray.  The manta has a
 body that is thin in the vertical direction and that has large pectoral fins
@@ -653,6 +617,44 @@ swim straight without using the path following technique due to the
 accumulation of numerical errors. When the path following technique is
 applied, the turtle actively adjusts its swimming motions according to its
 position and orientation and successfully swims straight.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/manta.eps}
+\caption{A manta ray swimming forward. Rajiform swimmers swim by slow flapping strokes like a slow-motion version of a bird flapping its wings.}
+\label{fig:manta}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/turtle.eps}
+\caption{A turtle swims in water with a flapping motion of its two front flippers. }
+\label{fig:turtle}
+\end{figure*}
+
+\begin{figure}[!b]
+\centering
+\includegraphics[width=3.2in]{figures/manta_path2.eps}
+\caption{A manta ray follows an S-shaped path by choosing maneuvers from ``swimming straight'', ``pitch up'' and ``pitch down''. The red curve is the path specified by the user.}
+\label{fig:manta_path}
+\end{figure}
+
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=\textwidth]{figures/frog.eps}
+\caption{A frog mainly relies on its large rear legs to provide forward thrust in the water.}
+\label{fig:frog}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=\textwidth]{figures/alien.eps}
+\caption{An alien aquatic creature that swims in water by undulating its tails and flapping its wings. Note the two pairs of wings are slightly out of phase to mimic flapping motion of larger wings.}
+\label{fig:alien}
+\end{figure*}
+
+
+
 
 Figure~\ref{fig:turtle} shows the motion of a sea turtle that was created
 using optimization.  Adult sea turtles are underwater fliers, moving
@@ -669,7 +671,7 @@ simulated fluid is a simple model or a full Navier-Stokes (NS) solver.
 Our simple fluid simulator calculates the force as the square of the
 normal component of the velocity of a moving surface element.  This
 simplified fluid model is identical to that
-in~\cite{wu2003realistic,lentine2010creature}.  We show that swimming in
+in~\cite{Wu:2003,lentine2010creature}.  We show that swimming in
 different fluid models leads to different locomotions. Figure~\ref{fig:accordian} shows a 2D swimmer that
 compresses and relaxes its body in an accordian-like manner moves through
 the water in the NS fluid but stay in one place in the simple fluid. We
@@ -709,12 +711,12 @@ for all of the examples. We made this choice deliberately because choosing a lon
 optimization time (each CMA sample need to simulate two cycles of swimming motions). However, we believe
 that including the period into the optimization will probably give more interesting results because different periods could make
 a big difference in the final swimming gait. We leave this as future work. To set the energy bounds, we began by trying out several energy bounds
-for an initial animal, the fish shown in the upper left of Figure~\ref{fig:teaser1}.
+for an initial animal, the fish shown in the leftmost of Figure~\ref{fig:teaser1}.
 Once we were satisfied with the results, we then used this as our standard energy bound.
 For a new creature, we scaled this standard energy bound according to the mass of the new creature
 relative to the mass of the fish. Users can also change the weights in the objective function.
 In our examples, we set all these parameters by intuition without much tuning. The weights
-are reported at the end of each paragraph that introduces the different objectives in Section 4.2.
+are reported at the end of each paragraph that introduces the different objectives in Chapter \ref{sec:swimmingObj}.
 
 \section{Discussion}
 
