@@ -387,10 +387,12 @@ where $w_3$ is chosen to be $500$ for all the examples.
 
 \subsection{Optimization}
 \label{sec:CMAOptimization}
-Our objective function is discontinuous and prone to local minima due to
-sub-optimal swimming gaits, collision penalties, and the modulation of the
-energy penalty term.  We perform gait optimization using Covariance Matrix
-Adaptation (CMA).  CMA is based on evaluating the objective function for a
+\newtext{Solving the above optimization presents unique challenges. First,
+  we do not have good initial guesses for different swimming patterns of a wide variety of
+  animals with distinctive morphologies. Second, evaluating gradient is expensive because each evaluation needs to simulate the fluid. Last but not least, our objective function is discontinuous and prone to local minima due to sub-optimal swimming gaits, collision penalties, and the modulation of the energy penalty term. For the above reasons, it is difficult to apply traditional continuous optimization algorithms that perform gradient-guided ``local'' search near the initial guesses.} To solve these problems, we perform gait optimization using Covariance Matrix
+Adaptation (CMA).  \newtext{CMA is a stochastic sample-based optimization algorithm. It does not rely on good initializations and it does not need to compute gradient. More importantly, CMA is a ``global'' search algorithm that can explore multiple local minima. Although there is no guarantee that CMA will converge at the global minimum, in practice, we observe that it often finds good local minima in moderatly high dimensional control spaces (\eg 20-30 dimensions). I believe that other sample-based optimization algorithms, such as Particle Swarm Optimization \cite{Kennedy:1995}, may also work well for this problem, although they are not tested in our implementation.}
+
+CMA is based on evaluating the objective function for a
 given population of samples over the parameter space (in our case the
 joint trajectories).  Some fraction of the best samples are then used to
 update the mean and a covariance matrix that determines the distribution
@@ -752,7 +754,7 @@ such as gliding. One possible way to improve this is to to use a weighted
 sum of multiple sine functions with different amplitudes, phases and
 periods \cite{Grzeszczuk95automatedlearning}. However, this would require more
 optimization variables and more computational resources to discover a
-swimming gait.
+swimming gait. \newtext{In addition, other simplifications to ease optimization, including enforcing symmetry and hardcoding the swimming frequency to be one hertz, further restrict the motion space to a smaller subset of possible swimming motions employed in nature.}
 
 Our simulated swimmers seem to use more energy than the real creatures do because the simulated water is more viscous than real water. Even though we use the inviscous Navier-Stokes equation (Euler equation) to simulate the fluid, there is numerical viscosity. We chose to use relatively coarse grid, and thus incur large numerical viscosity, to keep the computational time tractable because CMA optimization need to simulate the two-way coupling thousands of times. In addition, while the real aquatic creatures take advantage of their streamline shaped body to reduce the fluid drag, the simulated creatures are voxelized and the resultant stair-step shaped body is not particularly efficient inside the fluid.
 
