@@ -247,6 +247,7 @@ We summarize the reward functions that are used to learn different bicycle tasks
 \begin{table}[ht]
 \vspace{-0.1in}
 \centering
+ \caption{Reward functions for different tasks. }
 \begin{tabular}{|l|l|}
 \hline
 task & reward function\\
@@ -268,7 +269,6 @@ high wheeler (stunt)  & $1 + \frac{1}{\Delta \beta + 1} + \frac{1}{\Delta v_f + 
 unicycle              & $1 + \frac{1}{\Delta v_r + 1} + \frac{2}{\alpha + 0.1} + \frac{1}{\chi + 1}$\\
 \hline
  \end{tabular}
- \caption{Reward functions for different tasks. }
  \vspace{-0.1in}
  \label{table:rewardFunction}
  \end{table}
@@ -279,6 +279,7 @@ We describe the physical specifications of the three bicycles and the unicycle i
 \begin{table}[!b]
 \vspace{-0.1in}
 \centering
+\caption{Specifications of different bicycles and the unicycle. The mass unit is $kg$ and the length unit is $m$. The distance between wheels only accounts for the horizontal distance. }
 \begin{tabular}{|l|c|c|c|c|}
 \hline
 specification & road & BMX  & high    & uni- \\
@@ -294,7 +295,6 @@ width of the tires & 0.015 & 0.03 & 0.015 & 0.03 \\
 distance between wheels & 1.03 & 0.85 & 0.58 & NA\\
 \hline
 \end{tabular}
-\caption{Specifications of different bicycles and the unicycle. The mass unit is $kg$ and the length unit is $m$. The distance between wheels only accounts for the horizontal distance. }
 \label{table:specification}
 \end{table}
 
@@ -304,6 +304,7 @@ We used Open Dynamic Engine as our physical simulator. Table~\ref{table:simParam
 \begin{table}[ht]
 \vspace{-0.1in}
 \centering
+\caption{Simulation parameters. }
 \begin{tabular}{|l|l|}
 \hline
 parameter & value \\
@@ -315,7 +316,6 @@ friction coefficient (BMX bike examples) & 2.0 \\
 friction coefficient (other examples) & 1.0  \\
 \hline
 \end{tabular}
-\caption{Simulation parameters. }
 \label{table:simParameters}
 \end{table}
 
@@ -326,6 +326,7 @@ We applied NEAT to search for the neural networks for the balance-driven tasks. 
 \begin{table}[ht]
 \vspace{-0.1in}
 \centering
+\caption{NEAT parameters. }
 \begin{tabular}{|l|l|}
 \hline
 parameter & value \\
@@ -341,7 +342,6 @@ chance of replacing a weight & 0.1\\
 max weight perturbation & 0.5\\
 \hline
 \end{tabular}
-\caption{NEAT parameters. }
 \label{table:NEATParameters}
 \end{table}
 

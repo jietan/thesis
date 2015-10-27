@@ -570,7 +570,11 @@ the friction cone, which provides sufficient accuracy while keeping the QPCC tra
 examples are summarized in Table~\ref{table:data}.
 
 \begin{table}[!b]
-\centering
+  \centering
+   \caption{Parameters and performance of examples. \# tets: the number of
+  elements in the FEM simulation. \# dofs: the number of muscle degrees of
+  freedom for the soft body. Sim time, opt time and total time are the average simulation,
+  optimization and total time (in second) per frame.}
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
 examples & \# tets & \# dofs  & \# contact     & sim  & opt & total\\
@@ -584,13 +588,8 @@ jump(T)     & 1219 & 51  & 4 & 0.63 & 0.30 & 0.93 \\
 roll(O)     & 911  & 40  & 6 & 0.26 & 0.18 & 0.44\\
 crawl(I)    & 620  & 26  & 8 & 0.18 & 0.24 & 0.42\\
 walk(X)     & 1128 & 112 & 4 & 0.54 & 0.70 & 1.24\\
-
 \hline
  \end{tabular}
- \caption{Parameters and performance of examples. \# tets: the number of
-  elements in the FEM simulation. \# dofs: the number of muscle degrees of
-  freedom for the soft body. Sim time, opt time and total time are the average simulation,
-  optimization and total time (in second) per frame.}
  \label{table:data}
  \end{table}
 
@@ -828,7 +827,8 @@ solutions based static contact assumption. We also selected the best
 case and the worst case according to the gap ratio and reported them
 in Table \ref{tab:qpcc}.
 \begin{table*}
-\centering
+  \centering
+   \caption{The results of the numerical experiments of the QPCC solver. }
 \begin{tabular}{|l|r|r|r|r|r|r|r|r|r|r|}
 \hline
 &\multicolumn{3}{|c|}{QPCC} & \multicolumn{3}{|c|}{QP}  & \multicolumn{3}{|c|}{Ground Truth} \\ \hline
@@ -837,7 +837,6 @@ Obj Value & 1483.2 & 21.8 & 697.9 & 5222.8 & 2072.0& 1246.9 & 772.9 & 0.0 & 0.0 
 \#Iterations & 17 & 3 & 31 & 1 & 1 & 1 & 10000 & 10000 & 10000 \\
 \hline
 \end{tabular}
- \caption{The results of the numerical experiments of the QPCC solver. }
  \label{tab:qpcc}
 \end{table*}
 Although the empirical results showed that our QPCC solver can

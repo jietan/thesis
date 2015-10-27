@@ -95,7 +95,8 @@ The optimal solution of an MDP is the policy that has the maximum value $\pi^*=\
 Our MDP is partially observable because we choose to observe only a selected subset of all the simulation states. We have found that focusing on a small number of relevant states for each task results in a more efficient learning process. The actions are also selected based on our prior knowledge of the task. Table~\ref{table:states} and~\ref{table:actions} summarize all the states and actions used across our different examples. The 25 states in Table~\ref{table:states} may seem exhaustive, but we only use a subset of them (typically not more than eight states) for each task.
 
 \begin{table}[!t]
-\centering
+  \centering
+   \caption{States and their descriptions. The rider's pelvis position, torso orientation and angular velocity are calculated in the bicycle frame's coordinates.}
 \begin{tabular}{|l|l|}
 \hline
 state & description \\
@@ -127,12 +128,12 @@ $\Delta v_r $ & difference between actual and desired rear wheel speed \\
 $\Delta v_f $ & difference between actual and desired front wheel speed \\
 \hline
  \end{tabular}
- \caption{States and their descriptions. The rider's pelvis position, torso orientation and angular velocity are calculated in the bicycle frame's coordinates.}
  \label{table:states}
  \end{table}
 
 \begin{table}[!t]
   \centering
+  \caption{Actions and their descriptions. The rider's pelvis and torso movements are relative to the bicycle frame's coordinates.}
 \begin{tabular}{|l|l|}
 \hline
 action & description \\
@@ -153,7 +154,6 @@ $\tilde{z}$     & desired pelvis position along z-axis\\
 $\tilde{\phi}$    & desired torso orientation in the Sagittal plane\\
 \hline
 \end{tabular}
-\caption{Actions and their descriptions. The rider's pelvis and torso movements are relative to the bicycle frame's coordinates.}
 \label{table:actions}
 \end{table}
 
@@ -236,7 +236,8 @@ We designed three different bicycles and a unicycle to test our controllers on a
 
 
 \begin{table}[!b]
-\centering
+  \centering
+   \caption{Choices of states and actions for each bicycle task. Note that in the momentum-driven tasks, the actions only depend on time $t$ while the remaining states are used to compute the reward. }
 \begin{tabular}{|l|c|c|}
 \hline
 task & states & actions \\
@@ -258,7 +259,6 @@ high wheeler (stunt)  & $\beta, \dot{\beta}, \Delta \beta, \Delta v_f$ & $\dot{v
 unicycle              & $\alpha, \dot{\alpha}, \beta, \dot{\beta}, v_r, \Delta v_r, \chi$ & $\dot{v}_r, \dot{\chi}$\\
 \hline
  \end{tabular}
- \caption{Choices of states and actions for each bicycle task. Note that in the momentum-driven tasks, the actions only depend on time $t$ while the remaining states are used to compute the reward. }
  \label{table:stateActions}
  \end{table}
 
@@ -346,7 +346,8 @@ After the rear wheel touches the ground, we switch to a learned balance controll
 \label{sec:Evaluation}
 
 \begin{sidewaystable*}[ht]
-\centering
+  \centering
+   \caption{Torque limits (Unit: Nm) for different tasks. The values without the parenthesis are used for learning. The values within the parenthesis are the lowest torque limits that can be used in the simulation before the motion starts to fail. The amount of reduction is a measure of the robustness of the learned controllers. More reduction means a more robust controller. The last column reports the reduction ratios of average torque limits, which are sorted from high to low. This ranking is a possible indication of the difficulties (from low to high) that the learning algorithm think for each task. }
 \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
 \hline
 task & wrist & elbow & scapula & shoulder & pelvis & hip & knee & ankle & ratio \\
@@ -374,7 +375,6 @@ endo & 50 (50) & 100 (100) & 100 (100) & 550 (400) & 2000 (600) & 500 (470) & 50
 back hop & 250 (90) & 500 (400) & 500 (500) & 550 (545) & 2000 (900) & 500 (500) & 500 (450) & 500 (140) & 0.33\\
 \hline
  \end{tabular}
- \caption{Torque limits (Unit: Nm) for different tasks. The values without the parenthesis are used for learning. The values within the parenthesis are the lowest torque limits that can be used in the simulation before the motion starts to fail. The amount of reduction is a measure of the robustness of the learned controllers. More reduction means a more robust controller. The last column reports the reduction ratios of average torque limits, which are sorted from high to low. This ranking is a possible indication of the difficulties (from low to high) that the learning algorithm think for each task. }
  \label{table:torqueLimit}
 \end{sidewaystable*}
 

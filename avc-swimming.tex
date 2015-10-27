@@ -514,7 +514,8 @@ turtles and frogs, to halve the optimization dimensions. We illustrate the
 joint configurations for some creatures in Figure~\ref{fig:skels} and the voxelized representations of creatures in Figure~\ref{fig:grid}.
 
 \begin{table}
-\centering
+  \centering
+   \caption{Parameters and performance of examples. Num DOFs is the number of degrees of freedom for the articulated rigid body. Opt Dims is the number of optimization variables. Sim Res is the grid resolution for the simulation and Sim Time is the average simulation time per frame.}
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 Examples & Num & Opt  & Sim  & Sim\\
@@ -532,7 +533,6 @@ alien     & 16 & 24 &  $96\times 36\times 24$ & 10.75s\\
 
 \hline
  \end{tabular}
- \caption{Parameters and performance of examples. Num DOFs is the number of degrees of freedom for the articulated rigid body. Opt Dims is the number of optimization variables. Sim Res is the grid resolution for the simulation and Sim Time is the average simulation time per frame.}
  \label{table:simData}
  \end{table}
 
